@@ -1,0 +1,91 @@
+---
+title: '创建视频生成任务'
+description: 'Seedance 2.0 POST /v1/video/generations'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## 简介
+
+提交 Seedance 2.0 异步视频生成任务，返回 `task_id` 用于轮询。支持 `content` 数组或简化 `prompt` 字段。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="model" type="string" required>
+  `seedance-2-0` 或 `seedance-2-0-fast`
+</ParamField>
+
+<ParamField body="content" type="array">
+  多模态内容：`text`、`image_url`、`video_url`、`audio_url` 等
+</ParamField>
+
+<ParamField body="prompt" type="string">
+  与 `content` 二选一
+</ParamField>
+
+<ParamField body="duration" type="integer" default="5">
+  4–15 秒，或 `-1` 自动
+</ParamField>
+
+<ParamField body="resolution" type="string" default="720p">
+  `480p`、`720p`、`1080p`（fast 不支持 1080p）
+</ParamField>
+
+<ParamField body="ratio" type="string" default="16:9">
+  `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`21:9`、`adaptive`
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "黄金时刻，无人机航拍连绵山脉，云海翻涌"}
+    ],
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9",
+    "generate_audio": true
+  }'
+```
+
+使用素材库：
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "女孩在海边跳舞"},
+      {"type": "image_url", "image_url": {"url": "asset://asset-xxx"}, "role": "reference_image"}
+    ],
+    "duration": 5
+  }'
+```
+
+## 响应示例
+
+```json
+{
+  "id": "ut-abc123",
+  "task_id": "ut-abc123",
+  "object": "video",
+  "model": "seedance-2-0",
+  "status": "queued",
+  "progress": 0
+}
+```
+
+下一步：[查询视频生成任务](/cn/api-reference/endpoint/seedance-2.0/get-video-generation)

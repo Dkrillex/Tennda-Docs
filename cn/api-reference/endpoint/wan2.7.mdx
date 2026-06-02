@@ -1,0 +1,359 @@
+---
+title: '万相 2.7 视频生成'
+description: '阿里万相 Wan 2.7 文生视频、图生视频、参考生视频'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## 简介
+
+万相 2.7（Wan 2.7）是阿里云百炼推出的视频生成系列，由文生视频（Wan2.7-t2v）、图生视频（Wan2.7-i2v）、参考生视频（Wan2.7-r2v）与视频编辑（Wan2.7-videoedit）组成，覆盖从零创作、画面控制、演绎复刻到精细编辑的完整工作流。全系列支持 **720P** 与 **1080P** 输出。
+
+通过 TenndaAI 统一视频接口调用：先 [提交视频任务](/cn/api-reference/endpoint/submit-video-task) 获取 `task_id`，再 [查询视频任务](/cn/api-reference/endpoint/query-video-task) 轮询状态并获取 `url`。
+
+<Note>
+  万相 2.7 的请求体通过 `metadata.input` 与 `metadata.parameters` 传递底层 DashScope 参数，与万相 2.5 的扁平字段不同。
+</Note>
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型
+
+| 模型 ID | 说明 | 支持分辨率 | 最大时长 | 特点 |
+|---------|------|-----------|---------|------|
+| `wan2.7-t2v-2026-04-25` | 文生视频 | 720P、1080P | 15 秒 | 多镜头叙事、自定义音频 |
+| `wan2.7-i2v-2026-04-25` | 图生视频 | 720P、1080P | 15 秒 | 首帧、首尾帧、视频续写 |
+| `wan2.7-r2v` | 参考生视频 | 720P、1080P | 有视频参考时 10 秒；无视频参考时 15 秒 | 多模态参考、音色参考、多角色互动 |
+
+## 调用流程
+
+1. **提交任务**：`POST /v1/video/generations`，传入 `model`、`prompt`、`duration` 及 `metadata` 中的万相参数。
+2. **轮询状态**：`GET /v1/video/generations/{task_id}`，建议每 3–15 秒查询一次，直到 `status` 为 `succeeded` 或 `failed`。
+3. **获取结果**：成功时响应中的 `url` 为视频地址（有效期通常为 24 小时，请及时下载转存）。
+
+## 通用请求结构
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `model` | string | 是 | 模型 ID，见上表 |
+| `prompt` | string | 是 | 视频生成提示词（与 `metadata.input.prompt` 一致） |
+| `duration` | integer | 否 | 视频时长（秒），与 `metadata.parameters.duration` 保持一致 |
+| `metadata.input` | object | 是 | 输入：`prompt`、`media`、`audio_url`、`negative_prompt` 等 |
+| `metadata.parameters` | object | 否 | 处理参数：`resolution`、`ratio`、`duration`、`prompt_extend`、`watermark`、`seed` 等 |
+
+### 提交成功响应
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "submitted",
+  "format": "mp4"
+}
+```
+
+### 查询成功响应
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "succeeded",
+  "format": "mp4",
+  "url": "https://tennda-ads.oss-cn-guangzhou.aliyuncs.com/2025/11/18/abc123/video.mp4"
+}
+```
+
+## 使用场景
+
+<Tabs>
+  <Tab title="文生视频 (T2V)">
+基于文本提示词生成视频，支持多镜头分镜描述、智能改写 prompt、自定义音频。
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  文本提示词。可使用时间戳描述分镜，例如「第1个镜头[0-3秒] … 第2个镜头[3-6秒] …」
+</ParamField>
+
+<ParamField body="metadata.input.negative_prompt" type="string">
+  反向提示词，不超过 500 字符
+</ParamField>
+
+<ParamField body="metadata.input.audio_url" type="string">
+  自定义音频 URL（wav/mp3），时长 2–30 秒，不超过 15MB
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="720P">
+  `720P` 或 `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  宽高比：`16:9`、`9:16`、`1:1`、`4:3`、`3:4`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  视频时长（秒），取值范围 2–15
+</ParamField>
+
+<ParamField body="metadata.parameters.prompt_extend" type="boolean" default="true">
+  是否开启 Prompt 智能改写
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="false">
+  是否添加水印
+</ParamField>
+
+**多镜头叙事示例：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-t2v-2026-04-25",
+    "prompt": "第1个镜头[0-3秒] 全景：雨夜的纽约街头，霓虹灯闪烁，一位身穿黑色风衣的侦探快步行走。第2个镜头[3-6秒] 中景：侦探进入一栋老旧建筑。",
+    "duration": 6,
+    "metadata": {
+      "input": {
+        "prompt": "第1个镜头[0-3秒] 全景：雨夜的纽约街头，霓虹灯闪烁，一位身穿黑色风衣的侦探快步行走。第2个镜头[3-6秒] 中景：侦探进入一栋老旧建筑。"
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 6,
+        "prompt_extend": true,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="图生视频 (I2V)">
+支持首帧生视频、首尾帧生视频、视频续写。通过 `metadata.input.media` 数组传入素材。
+
+#### media 类型
+
+| type | 说明 | 数量限制 |
+|------|------|---------|
+| `first_frame` | 首帧图像 | 1 张 |
+| `last_frame` | 尾帧图像 | 1 张（需搭配 `first_frame`） |
+| `driving_audio` | 驱动音频 | 1 个（首帧模式可选） |
+| `first_clip` | 首段视频 | 1 个（视频续写） |
+
+<ParamField body="metadata.input.media" type="array" required>
+  媒体列表，每项包含 `type` 与 `url`
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="720P">
+  `720P` 或 `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  视频时长（秒），取值范围 2–15
+</ParamField>
+
+**首帧生视频（含驱动音频）：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "一个涂鸦艺术少年，从墙上活过来，演唱rap。",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "一个涂鸦艺术少年，从墙上活过来，演唱rap。",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/first_frame.png"},
+          {"type": "driving_audio", "url": "https://example.com/rap.mp3"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "duration": 10,
+        "prompt_extend": true
+      }
+    }
+  }'
+```
+
+**首尾帧生视频：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "日出到日落的延时摄影效果",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "日出到日落的延时摄影效果",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/sunrise.png"},
+          {"type": "last_frame", "url": "https://example.com/sunset.png"}
+        ]
+      },
+      "parameters": {
+        "duration": 10
+      }
+    }
+  }'
+```
+
+**视频续写：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "一个女孩对镜自拍，然后背着书包出门",
+    "duration": 15,
+    "metadata": {
+      "input": {
+        "prompt": "一个女孩对镜自拍，然后背着书包出门",
+        "media": [
+          {"type": "first_clip", "url": "https://example.com/girl_selfie.mp4"}
+        ]
+      },
+      "parameters": {
+        "duration": 15
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="参考生视频 (R2V)">
+将人物或物体作为主角，生成单角色表演或多角色互动视频。在 `prompt` 中使用 **「图1」「图2」** 或 **「视频1」「视频2」** 指代 `media` 中的参考素材（图与视频分别计数）。
+
+#### media 类型
+
+| type | 说明 | 数量限制 |
+|------|------|---------|
+| `reference_image` | 参考图像 | 最多 5 张（图+视频总数 ≤ 5） |
+| `reference_video` | 参考视频 | 最多 5 个 |
+| `first_frame` | 首帧图像 | 最多 1 张（可选，联合控制画幅） |
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  使用 `图n` / `视频n` 指代参考素材的提示词
+</ParamField>
+
+<ParamField body="metadata.input.media[].reference_voice" type="string">
+  音色参考音频 URL（仅 `reference_image` / `reference_video` 支持）
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  宽高比。若同时传入 `first_frame`，则以首帧比例为准并忽略 `ratio`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  有视频参考时 2–10 秒；无视频参考时 2–15 秒
+</ParamField>
+
+**多主体参考示例：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-r2v",
+    "prompt": "视频1抱着图3，在图4的椅子上弹奏民谣，并说道：\"今天的阳光真好。\"图1路过，把图2放到视频1旁边的桌子上。",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "视频1抱着图3，在图4的椅子上弹奏民谣，并说道：\"今天的阳光真好。\"图1路过，把图2放到视频1旁边的桌子上。",
+        "media": [
+          {"type": "reference_image", "url": "https://example.com/girl.jpg", "reference_voice": "https://example.com/girl_voice.mp3"},
+          {"type": "reference_video", "url": "https://example.com/boy_video.mp4", "reference_voice": "https://example.com/boy_voice.mp3"},
+          {"type": "reference_image", "url": "https://example.com/object3.png"},
+          {"type": "reference_image", "url": "https://example.com/object4.png"},
+          {"type": "reference_image", "url": "https://example.com/background5.png"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 10,
+        "prompt_extend": true
+      }
+    }
+  }'
+```
+  </Tab>
+</Tabs>
+
+## 参数参考
+
+### 通用 parameters
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `duration` | integer | 文生/图生：2–15 秒；参考生：有视频参考时 2–10 秒，否则 2–15 秒 |
+| `resolution` | string | `720P` 或 `1080P` |
+| `prompt_extend` | boolean | 是否智能改写 Prompt，默认 `true` |
+| `watermark` | boolean | 是否添加水印，默认 `false` |
+| `seed` | integer | 随机种子，范围 `[0, 2147483647]` |
+
+### 文生视频 & 参考生视频
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `ratio` | string | `16:9`、`9:16`、`1:1`、`4:3`、`3:4`。图生视频（i2v）由输入素材决定画幅，无需传 `ratio` |
+
+### 媒体输入限制
+
+| 类型 | 格式 | 大小 | 其他限制 |
+|------|------|------|---------|
+| 图像 | JPEG、JPG、PNG、BMP、WEBP | ≤ 20MB | 宽高 240–8000px，宽高比 1:8 ~ 8:1 |
+| 音频（driving_audio） | WAV、MP3 | ≤ 15MB | 时长 2–30s |
+| 音频（reference_voice） | WAV、MP3 | ≤ 15MB | 时长 1–10s |
+| 视频（first_clip / reference_video） | MP4、MOV | ≤ 100MB | first_clip：2–10s；reference_video：1–30s；宽高 240–4096px |
+
+## 错误处理
+
+| HTTP 状态码 | 含义 | 建议 |
+|------------|------|------|
+| 400 | 请求参数错误 | 检查 `metadata` 结构与媒体限制 |
+| 401 | 未授权 | 检查 API Key |
+| 429 | 请求过于频繁 | 降低频率后重试 |
+| 502 | 上游服务错误 | 稍后重试 |
+
+任务失败时，`status` 为 `failed`，`error.message` 包含具体原因。
+
+## 常见问题
+
+<AccordionGroup>
+  <Accordion title="生成的视频链接有效期多久？">
+    视频 `url` 与 `task_id` 有效期通常为 **24 小时**。建议获取后立即下载并转存至自有存储。
+  </Accordion>
+  <Accordion title="如何为主体配音（音色参考）？">
+    仅 **参考生视频**（`wan2.7-r2v`）支持。在 `media` 中为 `reference_image` 或 `reference_video` 添加 `reference_voice` 字段，传入 1–10 秒的音频 URL。
+  </Accordion>
+  <Accordion title="图生视频支持哪些模式？">
+    - **首帧**：`first_frame`（可选 `driving_audio`）  
+    - **首尾帧**：`first_frame` + `last_frame`  
+    - **续写**：`first_clip`
+  </Accordion>
+  <Accordion title="与万相 2.5 的调用方式有何不同？">
+    万相 2.7 使用 `metadata.input` / `metadata.parameters` 与 `media` 数组；万相 2.5 使用顶层 `prompt`、`image`、`duration` 等扁平字段。详见 [提交视频任务](/cn/api-reference/endpoint/submit-video-task) 中的「阿里万相」标签页。
+  </Accordion>
+</AccordionGroup>
+
+## 相关接口
+
+<Columns cols={2}>
+  <Card title="提交视频任务" icon="upload" href="/cn/api-reference/endpoint/submit-video-task">
+    统一视频任务提交入口与多模型参数说明
+  </Card>
+  <Card title="查询视频任务" icon="search" href="/cn/api-reference/endpoint/query-video-task">
+    轮询任务状态并获取视频 URL
+  </Card>
+</Columns>

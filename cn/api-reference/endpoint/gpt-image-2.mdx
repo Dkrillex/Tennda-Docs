@@ -1,0 +1,82 @@
+---
+title: 'GPT-Image-2'
+description: 'OpenAI GPT-Image-2 文生图与图生图'
+api: 'POST https://api.tennda.ai/v1/images/generations'
+---
+
+## 简介
+
+GPT-Image-2 支持文生图与图生图，统一使用 `POST /v1/images/generations`：不传 `image` 时为文生图；传入 `image`（URL 或 Base64）时自动进入图生图。响应固定为 Base64（`b64_json`），并返回 `usage` token 统计。
+
+完整参数与多模型说明请参见 [图片生成](/cn/api-reference/endpoint/image-generation)。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型
+
+| 模型 ID | 说明 |
+|---------|------|
+| `gpt-image-2` | OpenAI GPT-Image-2，支持 4K 与多尺寸 |
+
+## 请求示例
+
+<Tabs>
+  <Tab title="文生图">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "一只在星空下奔跑的白色猫咪，赛博朋克风格",
+        "size": "1024x1536",
+        "quality": "high",
+        "n": 1
+      }'
+    ```
+  </Tab>
+  <Tab title="图生图（generations）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "将画面改为夜晚赛博朋克风格",
+        "image": "https://example.com/input.png",
+        "size": "1024x1024",
+        "quality": "high",
+        "n": 1
+      }'
+    ```
+  </Tab>
+  <Tab title="图生图（edits）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "将背景改为海滩日落",
+        "image": "https://example.com/input.png",
+        "size": "1024x1024",
+        "quality": "high"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+- **model**：固定为 `gpt-image-2`  
+- **prompt**：图像描述或编辑指令  
+- **image**：图生图参考图（URL 或 Base64，可字符串或数组）  
+- **size**：如 `1024x1024`、`1024x1536`、`1536x1024`，或 4K `2880x2880` 等（边长须为 16 的倍数）  
+- **quality**：`low`、`medium`、`high`（默认 `high`）  
+- **n**：生成张数，1–10  
+
+响应 `data[].b64_json` 为 PNG Base64。multipart 上传与更多 edits 示例见 [图像编辑](/cn/api-reference/endpoint/image-edits)；总览见 [图片生成](/cn/api-reference/endpoint/image-generation)。

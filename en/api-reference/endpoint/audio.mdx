@@ -1,0 +1,135 @@
+---
+title: 'Audio'
+description: 'OpenAI-compatible audio and Gemini native TTS'
+---
+
+## Introduction
+
+TenndaAI audio APIs fall into two groups:
+
+- **OpenAI format**: `/v1/audio/speech` (TTS), `/v1/audio/transcriptions` (STT), `/v1/audio/translations` — compatible with the OpenAI Audio API.
+- **Gemini native format**: `POST /v1beta/models/{model}:generateContent` with `responseModalities: ["AUDIO"]` and `speechConfig` (e.g. `gemini-2.5-flash-preview-tts`).
+
+Base URL: `https://api.tennda.ai`. For Gemini auth, see [Gemini native format](/en/api-reference/endpoint/gemini-native).
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx` (OpenAI and Gemini)
+</ParamField>
+
+<ParamField header="x-goog-api-key" type="string">
+  Optional for Gemini: `x-goog-api-key: sk-xxxxxxxxxx`
+</ParamField>
+
+## Request examples
+
+<Tabs>
+  <Tab title="OpenAI format">
+    <Tabs>
+      <Tab title="Text-to-speech">
+        **POST** `/v1/audio/speech`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/speech" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "model": "tts-1",
+            "input": "Hello from TenndaAI.",
+            "voice": "alloy",
+            "response_format": "mp3"
+          }' \
+          --output speech.mp3
+        ```
+      </Tab>
+      <Tab title="Transcription">
+        **POST** `/v1/audio/transcriptions`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/transcriptions" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -F file="@audio.mp3" \
+          -F model="whisper-1"
+        ```
+      </Tab>
+      <Tab title="Translation">
+        **POST** `/v1/audio/translations`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/translations" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -F file="@audio.mp3" \
+          -F model="whisper-1"
+        ```
+      </Tab>
+    </Tabs>
+  </Tab>
+  <Tab title="Gemini format">
+    **POST** `/v1beta/models/{model}:generateContent`
+
+    Replace `{model}` with a TTS model ID and set audio output in `generationConfig`.
+
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1beta/models/gemini-2.5-flash-preview-tts:generateContent" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "contents": [
+          {
+            "parts": [
+              {"text": "Say cheerfully: Have a wonderful day!"}
+            ]
+          }
+        ],
+        "generationConfig": {
+          "responseModalities": ["AUDIO"],
+          "speechConfig": {
+            "voiceConfig": {
+              "prebuiltVoiceConfig": {
+                "voiceName": "Kore"
+              }
+            }
+          }
+        }
+      }'
+    ```
+
+    Audio is returned in `candidates[0].content.parts[0].inlineData` (Base64, often PCM):
+
+    ```bash
+    echo "<base64_data>" | base64 --decode > out.pcm
+    ```
+
+    For multi-speaker setups, use `speechConfig.multiSpeakerVoiceConfig` — see [Google speech generation](https://ai.google.dev/gemini-api/docs/speech-generation).
+  </Tab>
+</Tabs>
+
+## Common parameters
+
+### OpenAI format
+
+**Speech**
+
+- **model**: e.g. `tts-1`, `tts-1-hd`  
+- **input**: Text to speak (max 4096 chars)  
+- **voice**: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer`  
+
+**Transcriptions / translations**
+
+- **file**: Audio file (multipart)  
+- **model**: e.g. `whisper-1`  
+
+### Gemini format (TTS)
+
+- **model** (path): e.g. `gemini-2.5-flash-preview-tts`, `gemini-2.5-pro-preview-tts`  
+- **contents[].parts[].text**: Text or style instructions  
+- **generationConfig.responseModalities**: must include `"AUDIO"`  
+- **generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName**: e.g. `Kore`, `Puck`, `Charon`  
+
+<Note>
+  Gemini audio is produced only via `generateContent`, not `/v1/audio/*`. See [Gemini native format](/en/api-reference/endpoint/gemini-native) for full parameters.
+</Note>
+
+- [OpenAI Audio API](https://platform.openai.com/docs/api-reference/audio)  
+- [Gemini speech generation](https://ai.google.dev/gemini-api/docs/speech-generation)

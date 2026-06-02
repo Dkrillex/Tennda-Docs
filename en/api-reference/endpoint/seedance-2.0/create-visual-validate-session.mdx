@@ -1,0 +1,41 @@
+---
+title: 'Create asset group (liveness)'
+description: 'POST /v1/visual-validate/session (liveness_face)'
+api: 'POST https://api.tennda.ai/v1/visual-validate/session'
+---
+
+## Introduction
+
+Create a `liveness_face` asset group and H5 validation URL. Assets are usable in Seedance 2.0 after the user completes validation.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request body
+
+<ParamField body="name" type="string" required>
+  Group name
+</ParamField>
+
+<ParamField body="description" type="string">
+  Description
+</ParamField>
+
+<ParamField body="callback_url" type="string">
+  Business callback URL (optional)
+</ParamField>
+
+## Example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Live character A", "description": "Face validation"}'
+```
+
+Returns `group_id`, `validate_url`, etc. After H5, use [List asset groups](/en/api-reference/endpoint/seedance-2.0/list-asset-groups) (`group_type=liveness_face`) and [Get asset](/en/api-reference/endpoint/seedance-2.0/get-asset).

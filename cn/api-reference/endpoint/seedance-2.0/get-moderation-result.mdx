@@ -1,0 +1,34 @@
+---
+title: '查询审核拦截原因'
+description: 'Seedance 2.0 GET /v1/video/generations/moderation-result/{task_id}'
+api: 'GET https://api.tennda.ai/v1/video/generations/moderation-result/{task_id}'
+---
+
+## 简介
+
+当 Seedance 2.0 任务因内容安全、版权等原因 `failed` 时，可查询上游审核分类详情。需渠道白名单；创建后 14 天内有效，首次查询结果会缓存。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 路径参数
+
+<ParamField path="task_id" type="string" required>
+  失败任务的 `task_id`（仅 `seedance-2-0` / `seedance-2-0-fast`）
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/video/generations/moderation-result/ut-abc123" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## 常用说明
+
+- 未开通白名单可能返回 403  
+- 仅适用于审核类失败，非所有 `failed` 均有记录  

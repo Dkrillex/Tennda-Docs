@@ -1,0 +1,210 @@
+---
+title: 'Codex'
+description: 'Codex 集成指南：通过 TenndaAI 在终端中使用 GPT 全系列编程模型'
+---
+
+## 一、产品简介
+
+**Codex** 是 OpenAI 官方推出的终端编程 Agent，专为代码生成、代码审查与复杂工程任务设计。通过 **TenndaAI**（兼容 OpenAI 接口）你可以：
+
+<CardGroup cols={2}>
+  <Card title="统一接入" icon="plug">
+    通过单一 API Key 访问 GPT-5.5 / 5.4 / 5.4-Pro 等 GPT 全家族模型
+  </Card>
+  <Card title="Responses API" icon="bolt">
+    内置 `wire_api = "responses"` 支持，自动适配新一代 GPT 模型
+  </Card>
+  <Card title="高可用" icon="shield-check">
+    分布式基础设施，自动故障转移，国内访问稳定
+  </Card>
+  <Card title="按量计费" icon="wallet">
+    无需订阅，按 token 计费，比官方更具性价比
+  </Card>
+</CardGroup>
+
+## 二、前置条件
+
+- 在你的机器上已安装 **Codex CLI**（请按照 Codex 官方说明安装）
+- 已在 [TenndaAI 控制台](https://client.tennda.ai/#/keys) 创建 **API Key**（格式 `sk-xxxxxxxxxx`）
+
+<Tip>
+**Base URL**：`https://api.tennda.ai/v1` —— 必须以 `/v1` 结尾。
+</Tip>
+
+## 三、快速配置
+
+Codex 通过 TOML 配置文件指定模型供应商。环境变量在自定义供应商场景下可能不稳定，**推荐直接写入 TOML 配置**。
+
+### 1. 编辑 `~/.codex/config.toml`
+
+<Steps>
+  <Step title="打开配置文件">
+    ```bash
+    # macOS / Linux
+    nano ~/.codex/config.toml
+
+    # Windows
+    notepad %USERPROFILE%\.codex\config.toml
+    ```
+  </Step>
+  <Step title="写入以下配置">
+    ```toml
+    model = "gpt-5.5"
+    model_provider = "openai-custom"
+    personality = "pragmatic"
+    model_reasoning_effort = "high"
+
+    [model_providers.openai-custom]
+    name = "TenndaAI"
+    base_url = "https://api.tennda.ai/v1"
+    wire_api = "responses"
+
+    # 自定义供应商通常需要显式注入 Key：
+    [model_providers.openai-custom.http_headers]
+    Authorization = "Bearer 你的_API_KEY"
+    Content-Type = "application/json"
+    ```
+  </Step>
+  <Step title="启动 Codex">
+    ```bash
+    cd your-project-folder
+    codex
+    ```
+
+    Codex 会基于上述配置使用 TenndaAI 提供的 GPT 模型进行回答。
+  </Step>
+</Steps>
+
+## 四、推荐模型（经 TenndaAI 使用）
+
+Codex 目前主要支持 GPT 家族的模型 ID。以下为 TenndaAI 中最常用的 GPT 模型组合：
+
+| 模型 ID | 适用场景 | 特点 |
+|---------|----------|------|
+| **gpt-5.5** ⭐ | 复杂推理、工程级代码 | OpenAI 最新主力，综合能力最强 |
+| **gpt-5.4** | 通用对话、代码生成 | 面向复杂专业任务的新一代主力 |
+| **gpt-5.4-pro** | 高复杂度推理 / 重构 | 高性能版本 |
+| **gpt-5.4-mini** | 性能与成本平衡 | 通用日常开发 |
+| **gpt-5.4-nano** | 高并发 / 低成本 | 轻量场景 |
+| **gpt-5.1-codex** | 编程 / 代码补全 | 仅支持 Responses API，需 `wire_api = "responses"` |
+
+<Tip>
+Codex 支持 GPT-family 的模型 ID（如 `gpt-5.5`、`gpt-5.4`、`gpt-5.1-codex`）。完整可用列表请参考 [TenndaAI 模型广场](https://client.tennda.ai/#/models)。
+</Tip>
+
+## 五、性格与推理强度
+
+Codex 支持通过两个参数自定义模型行为：**personality（性格）** 与 **model_reasoning_effort（推理强度）**。
+
+### 1. Personality（性格）
+
+控制响应的 **语气与风格**。
+
+```toml
+personality = "pragmatic"
+```
+
+| 选项 | 说明 |
+|------|------|
+| `pragmatic` | 务实，直接实用，最少化解释 |
+| `concise` | 简明扼要 |
+| `detailed` | 提供更多解释和背景 |
+| `analytical` | 结构化，注重逻辑 |
+| `creative` | 富有表现力，灵活创意 |
+
+<Tip>
+性格设置是一种 **软性偏好**，并非严格执行。如需精确控制，请使用 System Prompt。
+</Tip>
+
+### 2. Reasoning Effort（推理强度）
+
+控制模型在解决问题时的「思考量」，对应 OpenAI Responses API 的 `reasoning.effort` 参数。
+
+```toml
+model_reasoning_effort = "high"
+```
+
+| 选项 | 说明 | 适用场景 |
+|------|------|----------|
+| `low` | 响应最快 | 简单问答、文案生成 |
+| `medium` | 平衡速度与质量 | 日常编程任务 |
+| `high` | 深度推理 | 复杂调试、架构设计、算法 |
+
+<Tip>
+较高的推理强度会增加响应时间和 token 消耗，但显著提升代码编写、调试和复杂逻辑处理的准确性。
+</Tip>
+
+### 3. 完整示例配置
+
+```toml
+model = "gpt-5.5"
+model_provider = "openai-custom"
+personality = "pragmatic"
+model_reasoning_effort = "high"
+
+[model_providers.openai-custom]
+name = "TenndaAI"
+base_url = "https://api.tennda.ai/v1"
+wire_api = "responses"
+
+[model_providers.openai-custom.http_headers]
+Authorization = "Bearer sk-your-tennda-key"
+Content-Type = "application/json"
+```
+
+该配置提供：
+
+- 清晰、实用的回答风格
+- 针对复杂任务的深度推理
+- 通过 Responses API 获得完整的 GPT-5.5 能力
+
+## 六、常见问题
+
+<AccordionGroup>
+  <Accordion title="401 / invalid API key">
+    1. 在 [TenndaAI 控制台](https://client.tennda.ai/#/keys) 重新检查 Key 是否正确，注意复制时是否引入了多余空格或换行。
+    2. 确认 `Authorization` 头格式为 `Bearer sk-xxxxxxxxxx`。
+    3. 确认账户余额充足。
+  </Accordion>
+
+  <Accordion title="404 / wrong endpoint">
+    确认 Base URL **以 `/v1` 结尾**：
+
+    ```toml
+    base_url = "https://api.tennda.ai/v1"
+    ```
+
+    常见错误：少写 `/v1`、多写 `/responses`、写成 `http://` 等。
+  </Accordion>
+
+  <Accordion title="Model not found">
+    1. 核实模型 ID 是否存在于 [TenndaAI 模型列表](https://client.tennda.ai/#/models) 中。
+    2. 注意 Codex 仅支持 GPT 家族模型 ID（不支持 Claude / Gemini）。
+    3. 模型名大小写敏感。
+  </Accordion>
+
+  <Accordion title="使用 gpt-5.1-codex 时报 chatCompletion 错误">
+    `gpt-5.1-codex`、`gpt-5.2-codex` 等 Codex 系列模型**仅支持 Responses API**。请确保你的供应商配置中包含：
+
+    ```toml
+    [model_providers.openai-custom]
+    wire_api = "responses"
+    ```
+  </Accordion>
+
+  <Accordion title="环境变量没有生效？">
+    在自定义供应商场景下，Codex 不一定会自动注入 `OPENAI_API_KEY`。**推荐**通过 `http_headers` 显式写入 `Authorization`：
+
+    ```toml
+    [model_providers.openai-custom.http_headers]
+    Authorization = "Bearer sk-your-key"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## 七、参考链接
+
+- TenndaAI 控制台：[https://client.tennda.ai](https://client.tennda.ai)
+- 模型广场：[https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)
+- 密钥管理：[https://client.tennda.ai/#/keys](https://client.tennda.ai/#/keys)
+- OpenAI Responses API 文档：[https://platform.openai.com/docs/api-reference/responses](https://platform.openai.com/docs/api-reference/responses)

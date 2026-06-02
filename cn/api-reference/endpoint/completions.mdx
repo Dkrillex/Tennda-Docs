@@ -1,0 +1,68 @@
+---
+title: '文本补全（Completions）'
+description: 'OpenAI 兼容的传统文本补全接口'
+api: 'POST https://api.tennda.ai/v1/completions'
+---
+
+## 简介
+
+基于给定提示（`prompt`）创建文本补全，兼容 OpenAI Completions API 格式。适用于续写、单轮生成等场景；多轮对话请优先使用 [聊天补全](/cn/api-reference/endpoint/chat-openai)。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="model" type="string" required>
+  模型标识
+</ParamField>
+
+<ParamField body="prompt" type="string | array" required>
+  提示文本，可为字符串或字符串数组
+</ParamField>
+
+<ParamField body="max_tokens" type="integer">
+  最大生成 token 数
+</ParamField>
+
+<ParamField body="temperature" type="number">
+  采样温度
+</ParamField>
+
+<ParamField body="top_p" type="number">
+  核采样参数
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  是否流式返回
+</ParamField>
+
+<ParamField body="stop" type="string | array">
+  停止序列
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/completions" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "prompt": "请用一句话介绍人工智能：",
+    "max_tokens": 100,
+    "temperature": 0.7
+  }'
+```
+
+## 常用参数
+
+- **model**：模型 ID  
+- **prompt**：输入提示  
+- **max_tokens**：限制输出长度  
+- **stream**：设为 `true` 时以 SSE 流式返回  
+
+更多参数与响应字段说明请参考 [OpenAI Completions 文档](https://platform.openai.com/docs/api-reference/completions)。

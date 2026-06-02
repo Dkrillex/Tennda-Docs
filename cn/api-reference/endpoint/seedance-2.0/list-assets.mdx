@@ -1,0 +1,29 @@
+---
+title: '列出素材'
+description: 'GET /v1/assets'
+api: 'GET https://api.tennda.ai/v1/assets'
+---
+
+## 简介
+
+列出素材，可按素材组筛选。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 查询参数
+
+<ParamField query="group_id" type="string">
+  按素材组 ID 筛选
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/assets?group_id=group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

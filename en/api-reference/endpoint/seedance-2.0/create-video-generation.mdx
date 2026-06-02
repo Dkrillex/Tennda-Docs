@@ -1,0 +1,78 @@
+---
+title: 'Create video generation'
+description: 'Seedance 2.0 POST /v1/video/generations'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## Introduction
+
+Submit an async Seedance 2.0 job; returns `task_id` for polling. Use `content` or a simplified `prompt`.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  `seedance-2-0` or `seedance-2-0-fast`
+</ParamField>
+
+<ParamField body="content" type="array">
+  Multimodal items: `text`, `image_url`, `video_url`, `audio_url`, etc.
+</ParamField>
+
+<ParamField body="prompt" type="string">
+  Alternative to `content`
+</ParamField>
+
+<ParamField body="duration" type="integer" default="5">
+  4–15 seconds, or `-1` for auto
+</ParamField>
+
+<ParamField body="resolution" type="string" default="720p">
+  `480p`, `720p`, `1080p` (fast: no 1080p)
+</ParamField>
+
+<ParamField body="ratio" type="string" default="16:9">
+  `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`, `adaptive`
+</ParamField>
+
+## Example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "Golden hour drone shot over mountains and clouds"}
+    ],
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9",
+    "generate_audio": true
+  }'
+```
+
+With asset library:
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "Girl dancing on the beach"},
+      {"type": "image_url", "image_url": {"url": "asset://asset-xxx"}, "role": "reference_image"}
+    ],
+    "duration": 5
+  }'
+```
+
+Next: [Get video generation](/en/api-reference/endpoint/seedance-2.0/get-video-generation)

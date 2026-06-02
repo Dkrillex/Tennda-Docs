@@ -1,0 +1,57 @@
+---
+title: '嵌入（Gemini格式）'
+description: 'POST /v1/engines/{model}/embeddings'
+api: 'POST https://api.tennda.ai/v1/engines/{model}/embeddings'
+---
+
+## 简介
+
+通过路径中的 `model` 指定引擎/模型，创建文本向量嵌入。请求体字段与 OpenAI 格式一致。
+
+另可参考 [嵌入（OpenAI格式）](/cn/api-reference/endpoint/embeddings/create-embedding)（`POST /v1/embeddings`）。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 路径参数
+
+<ParamField path="model" type="string" required>
+  模型/引擎 ID（路径参数）
+</ParamField>
+
+## 请求参数
+
+<ParamField body="model" type="string" required>
+  模型名称（可与路径 `model` 一致）
+</ParamField>
+
+<ParamField body="input" type="string | array" required>
+  要嵌入的文本
+</ParamField>
+
+<ParamField body="encoding_format" type="string" default="float">
+  `float` 或 `base64`
+</ParamField>
+
+<ParamField body="dimensions" type="integer">
+  输出向量维度
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/engines/text-embedding-ada-002/embeddings" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": "你好，世界"
+  }'
+```
+
+## 响应说明
+
+响应结构与 `POST /v1/embeddings` 相同，包含 `object`、`data`、`model`、`usage` 等字段。

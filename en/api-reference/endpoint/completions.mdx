@@ -1,0 +1,60 @@
+---
+title: 'Completions'
+description: 'OpenAI-compatible legacy text completion API'
+api: 'POST https://api.tennda.ai/v1/completions'
+---
+
+## Introduction
+
+Create text completions from a `prompt`, compatible with the OpenAI Completions API. For multi-turn dialogue, prefer [Chat completions](/en/api-reference/endpoint/chat-openai).
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request parameters
+
+<ParamField body="model" type="string" required>
+  Model ID
+</ParamField>
+
+<ParamField body="prompt" type="string | array" required>
+  Prompt text (string or array of strings)
+</ParamField>
+
+<ParamField body="max_tokens" type="integer">
+  Maximum tokens to generate
+</ParamField>
+
+<ParamField body="temperature" type="number">
+  Sampling temperature
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+  Stream response via SSE
+</ParamField>
+
+## Request example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/completions" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "prompt": "In one sentence, describe AI:",
+    "max_tokens": 100,
+    "temperature": 0.7
+  }'
+```
+
+## Common parameters
+
+- **model**: Model ID  
+- **prompt**: Input prompt  
+- **max_tokens**: Cap output length  
+- **stream**: Set `true` for SSE streaming  
+
+See [OpenAI Completions API](https://platform.openai.com/docs/api-reference/completions) for full request/response schemas.

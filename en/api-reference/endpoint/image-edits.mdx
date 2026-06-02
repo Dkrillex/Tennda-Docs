@@ -1,0 +1,69 @@
+---
+title: 'Image Edits'
+description: 'OpenAI-compatible POST /v1/images/edits'
+api: 'POST https://api.tennda.ai/v1/images/edits'
+---
+
+## Introduction
+
+`POST /v1/images/edits` is the OpenAI-compatible image editing endpoint. Supported models include:
+
+- **Qwen**: `qwen-image-edit-plus` — see [Qwen Image](/en/api-reference/endpoint/qwen-image)
+- **GPT-Image-2**: JSON or `multipart/form-data`
+
+Text-to-image uses `POST /v1/images/generations`. GPT-Image-2 can also use generations with an `image` field — see [GPT-Image-2](/en/api-reference/endpoint/gpt-image-2).
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request examples
+
+<Tabs>
+  <Tab title="GPT-Image-2 (JSON)">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "Change background to beach sunset",
+        "image": "https://example.com/photo.png",
+        "size": "1024x1024",
+        "quality": "high"
+      }'
+    ```
+  </Tab>
+  <Tab title="GPT-Image-2 (multipart)">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -F "model=gpt-image-2" \
+      -F "prompt=Change background to beach sunset" \
+      -F "image[]=@photo.png"
+    ```
+  </Tab>
+  <Tab title="Qwen">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-edit-plus",
+        "input": {
+          "messages": [{
+            "role": "user",
+            "content": [
+              {"image": "https://example.com/input.webp"},
+              {"text": "Change scene to winter snow"}
+            ]
+          }]
+        }
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+See [Image generation](/en/api-reference/endpoint/image-generation) for model-specific details.

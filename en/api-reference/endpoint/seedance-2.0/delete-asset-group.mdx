@@ -1,0 +1,29 @@
+---
+title: 'Delete asset group'
+description: 'DELETE /v1/asset-groups/{group_id}'
+api: 'DELETE https://api.tennda.ai/v1/asset-groups/{group_id}'
+---
+
+## Introduction
+
+Deletes the group and all assets inside it.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="group_id" type="string" required>
+  Asset group ID
+</ParamField>
+
+## Example
+
+```bash
+curl -X DELETE "https://api.tennda.ai/v1/asset-groups/group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

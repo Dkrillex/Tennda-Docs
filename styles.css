@@ -1,0 +1,31 @@
+/* Tennda brand accents (aligned with logo blues) */
+:root {
+  --tennda-primary: #00aeef;
+  --tennda-primary-light: #89cff0;
+  --tennda-primary-dark: #0054a6;
+}
+
+/* Mintlify topbar logo size override */
+nav-logo,
+.nav-logo {
+  height: 58px !important;
+  width: auto !important;
+}
+
+/* Fallback selector in case internal class/element changes */
+#navbar img[alt*="logo" i] {
+  height: 58px !important;
+  width: auto !important;
+  max-height: none !important;
+}
+
+/* Primary CTA in navbar */
+#navbar a[href*="client.tennda.ai"] {
+  background-color: var(--tennda-primary-dark) !important;
+  border-color: var(--tennda-primary-dark) !important;
+}
+
+#navbar a[href*="client.tennda.ai"]:hover {
+  background-color: var(--tennda-primary) !important;
+  border-color: var(--tennda-primary) !important;
+}

@@ -1,0 +1,210 @@
+---
+title: 'Codex'
+description: 'Codex integration guide: use the full GPT family in your terminal via TenndaAI'
+---
+
+## 1. Overview
+
+**Codex** is OpenAI's official terminal-based coding agent, designed for code generation, code review and complex engineering tasks. With **TenndaAI** (OpenAI-compatible) you can:
+
+<CardGroup cols={2}>
+  <Card title="Unified access" icon="plug">
+    Use one API key to reach GPT-5.5 / 5.4 / 5.4-Pro and the whole GPT family
+  </Card>
+  <Card title="Responses API" icon="bolt">
+    Built-in `wire_api = "responses"` for the latest GPT models
+  </Card>
+  <Card title="High availability" icon="shield-check">
+    Distributed infra with automatic failover and stable global routing
+  </Card>
+  <Card title="Pay-as-you-go" icon="wallet">
+    No subscriptions, token-based billing — better value than the official endpoint
+  </Card>
+</CardGroup>
+
+## 2. Prerequisites
+
+- **Codex CLI** installed (follow Codex's official install instructions)
+- An **API key** created in the [TenndaAI console](https://client.tennda.ai/#/keys) (format `sk-xxxxxxxxxx`)
+
+<Tip>
+**Base URL**: `https://api.tennda.ai/v1` — must end with `/v1`.
+</Tip>
+
+## 3. Quick Setup
+
+Codex uses a TOML config to declare providers. Env vars can be unreliable for custom providers, so **we recommend writing the config directly into TOML**.
+
+### Edit `~/.codex/config.toml`
+
+<Steps>
+  <Step title="Open the config">
+    ```bash
+    # macOS / Linux
+    nano ~/.codex/config.toml
+
+    # Windows
+    notepad %USERPROFILE%\.codex\config.toml
+    ```
+  </Step>
+  <Step title="Paste the following">
+    ```toml
+    model = "gpt-5.5"
+    model_provider = "openai-custom"
+    personality = "pragmatic"
+    model_reasoning_effort = "high"
+
+    [model_providers.openai-custom]
+    name = "TenndaAI"
+    base_url = "https://api.tennda.ai/v1"
+    wire_api = "responses"
+
+    # Custom providers usually need the key injected explicitly:
+    [model_providers.openai-custom.http_headers]
+    Authorization = "Bearer YOUR_API_KEY"
+    Content-Type = "application/json"
+    ```
+  </Step>
+  <Step title="Launch Codex">
+    ```bash
+    cd your-project-folder
+    codex
+    ```
+
+    Codex will use the GPT model served by TenndaAI based on this config.
+  </Step>
+</Steps>
+
+## 4. Recommended Models (via TenndaAI)
+
+Codex currently supports GPT-family model IDs. The most commonly used combinations on TenndaAI:
+
+| Model ID | Best for | Notes |
+|----------|----------|-------|
+| **gpt-5.5** ⭐ | Complex reasoning, production code | OpenAI's latest flagship |
+| **gpt-5.4** | General chat, codegen | Next-gen main model for pro tasks |
+| **gpt-5.4-pro** | Heavy refactoring / reasoning | High-performance variant |
+| **gpt-5.4-mini** | Balanced cost & speed | General daily dev |
+| **gpt-5.4-nano** | High concurrency / low cost | Lightweight workloads |
+| **gpt-5.1-codex** | Code-focused completion | Requires `wire_api = "responses"` |
+
+<Tip>
+Codex supports GPT-family IDs only (e.g. `gpt-5.5`, `gpt-5.4`, `gpt-5.1-codex`). See the full list in the [TenndaAI model catalog](https://client.tennda.ai/#/models).
+</Tip>
+
+## 5. Personality & Reasoning
+
+Codex exposes two optional settings to customize behavior: **personality** and **model_reasoning_effort**.
+
+### 5.1 Personality
+
+Controls the **tone and style** of replies.
+
+```toml
+personality = "pragmatic"
+```
+
+| Option | Description |
+|--------|-------------|
+| `pragmatic` | Direct and practical, minimal explanation |
+| `concise` | Short and to the point |
+| `detailed` | More context and explanation |
+| `analytical` | Structured, logic-focused |
+| `creative` | Expressive and flexible |
+
+<Tip>
+Personality is a **soft preference**, not strictly enforced. For precise control, use a system prompt.
+</Tip>
+
+### 5.2 Reasoning effort
+
+Controls how much "thinking" the model spends — maps to the `reasoning.effort` field of OpenAI's Responses API.
+
+```toml
+model_reasoning_effort = "high"
+```
+
+| Option | Description | Best for |
+|--------|-------------|----------|
+| `low` | Fastest responses | Quick Q&A, copy generation |
+| `medium` | Balanced speed/quality | Day-to-day coding |
+| `high` | Deep reasoning | Complex debugging, design, algorithms |
+
+<Tip>
+Higher reasoning effort costs more time and tokens but markedly improves quality for hard coding and debugging tasks.
+</Tip>
+
+### 5.3 Full example
+
+```toml
+model = "gpt-5.5"
+model_provider = "openai-custom"
+personality = "pragmatic"
+model_reasoning_effort = "high"
+
+[model_providers.openai-custom]
+name = "TenndaAI"
+base_url = "https://api.tennda.ai/v1"
+wire_api = "responses"
+
+[model_providers.openai-custom.http_headers]
+Authorization = "Bearer sk-your-tennda-key"
+Content-Type = "application/json"
+```
+
+This config gives you:
+
+- Clear, practical answers
+- Deep reasoning for complex tasks
+- Full GPT-5.5 capability via the Responses API
+
+## 6. FAQ
+
+<AccordionGroup>
+  <Accordion title="401 / invalid API key">
+    1. Re-check your key in the [TenndaAI console](https://client.tennda.ai/#/keys) — beware of stray spaces or newlines.
+    2. Confirm the `Authorization` header is `Bearer sk-xxxxxxxxxx`.
+    3. Make sure your balance is positive.
+  </Accordion>
+
+  <Accordion title="404 / wrong endpoint">
+    Make sure the Base URL **ends with `/v1`**:
+
+    ```toml
+    base_url = "https://api.tennda.ai/v1"
+    ```
+
+    Common mistakes: missing `/v1`, appending `/responses`, using `http://` instead of `https://`.
+  </Accordion>
+
+  <Accordion title="Model not found">
+    1. Verify the model ID exists in the [TenndaAI model list](https://client.tennda.ai/#/models).
+    2. Codex supports GPT-family IDs only (no Claude / Gemini).
+    3. Model names are case-sensitive.
+  </Accordion>
+
+  <Accordion title="chatCompletion error with gpt-5.1-codex">
+    `gpt-5.1-codex` / `gpt-5.2-codex` and similar Codex models **only support the Responses API**. Make sure your provider config has:
+
+    ```toml
+    [model_providers.openai-custom]
+    wire_api = "responses"
+    ```
+  </Accordion>
+
+  <Accordion title="Env vars don't seem to work?">
+    For custom providers, Codex may not auto-inject `OPENAI_API_KEY`. **Recommended**: set `Authorization` explicitly via `http_headers`:
+
+    ```toml
+    [model_providers.openai-custom.http_headers]
+    Authorization = "Bearer sk-your-key"
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## 7. References
+
+- TenndaAI console: [https://client.tennda.ai](https://client.tennda.ai)
+- Model catalog: [https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)
+- API keys: [https://client.tennda.ai/#/keys](https://client.tennda.ai/#/keys)
+- OpenAI Responses API: [https://platform.openai.com/docs/api-reference/responses](https://platform.openai.com/docs/api-reference/responses)

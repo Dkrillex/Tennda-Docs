@@ -1,0 +1,82 @@
+---
+title: 'Seedance 2.0 概览'
+description: '豆包 Seedance 2.0 视频生成与素材库'
+---
+
+## 简介
+
+Seedance 2.0（`seedance-2-0` / `seedance-2-0-fast`）支持文生视频、图生视频、多模态参考与素材库（`asset://`）。本文档为系列概览；各接口说明见下方子页面。
+
+<Note>
+  `asset://` 须按素材 `asset_type` 映射到 `image_url` / `video_url` / `audio_url`。素材仅接受公网 **https URL** 创建，不支持 Base64 直传。
+</Note>
+
+## 认证
+
+所有接口使用 Bearer Token：`Authorization: Bearer sk-xxxxxxxxxx`
+
+## 模型
+
+| 模型 ID | 说明 |
+|---------|------|
+| `seedance-2-0` | 标准版，支持 480p / 720p / 1080p |
+| `seedance-2-0-fast` | 快速版，支持 480p / 720p |
+
+## 接口目录
+
+### 视频生成
+
+<CardGroup cols={2}>
+  <Card title="创建视频生成任务" icon="upload" href="/cn/api-reference/endpoint/seedance-2.0/create-video-generation">
+    POST /v1/video/generations
+  </Card>
+  <Card title="查询视频生成任务" icon="search" href="/cn/api-reference/endpoint/seedance-2.0/get-video-generation">
+    GET /v1/video/generations/{task_id}
+  </Card>
+  <Card title="查询审核拦截原因" icon="shield" href="/cn/api-reference/endpoint/seedance-2.0/get-moderation-result">
+    GET /v1/video/generations/moderation-result/{task_id}
+  </Card>
+</CardGroup>
+
+### 素材库（虚拟 aigc）
+
+<CardGroup cols={2}>
+  <Card title="创建素材组" icon="folder-plus" href="/cn/api-reference/endpoint/seedance-2.0/create-asset-group">
+    POST /v1/asset-groups
+  </Card>
+  <Card title="列出素材组" icon="folders" href="/cn/api-reference/endpoint/seedance-2.0/list-asset-groups">
+    GET /v1/asset-groups
+  </Card>
+  <Card title="删除素材组" icon="trash" href="/cn/api-reference/endpoint/seedance-2.0/delete-asset-group">
+    DELETE /v1/asset-groups/{group_id}
+  </Card>
+  <Card title="创建素材" icon="file-plus" href="/cn/api-reference/endpoint/seedance-2.0/create-asset">
+    POST /v1/assets
+  </Card>
+  <Card title="列出素材" icon="list" href="/cn/api-reference/endpoint/seedance-2.0/list-assets">
+    GET /v1/assets
+  </Card>
+  <Card title="查询单个素材" icon="file" href="/cn/api-reference/endpoint/seedance-2.0/get-asset">
+    GET /v1/assets/{virtual_id}
+  </Card>
+  <Card title="删除素材" icon="file-minus" href="/cn/api-reference/endpoint/seedance-2.0/delete-asset">
+    DELETE /v1/assets/{virtual_id}
+  </Card>
+</CardGroup>
+
+### 真人素材库（liveness_face）
+
+<CardGroup cols={2}>
+  <Card title="创建素材组（真人）" icon="user-check" href="/cn/api-reference/endpoint/seedance-2.0/create-visual-validate-session">
+    POST /v1/visual-validate/session
+  </Card>
+</CardGroup>
+
+## 推荐流程
+
+1. （可选）创建素材组 → 创建素材 → 轮询至 `status: active`  
+2. `POST /v1/video/generations` 提交任务  
+3. `GET /v1/video/generations/{task_id}` 轮询至 `completed`  
+4. 若失败且需排查审核，调用 [查询审核拦截原因](/cn/api-reference/endpoint/seedance-2.0/get-moderation-result)
+
+统一视频入口说明亦见 [提交视频任务](/cn/api-reference/endpoint/submit-video-task)。

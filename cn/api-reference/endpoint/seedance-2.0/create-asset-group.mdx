@@ -1,0 +1,61 @@
+---
+title: '创建素材组'
+description: 'POST /v1/asset-groups（虚拟 aigc）'
+api: 'POST https://api.tennda.ai/v1/asset-groups'
+---
+
+## 简介
+
+创建虚拟素材组（`group_type` 固定为 `aigc`）。真人素材组须走 [创建素材组（真人）](/cn/api-reference/endpoint/seedance-2.0/create-visual-validate-session)。
+
+同一用户下虚拟组与真人组各最多 **100** 个，配额独立。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="name" type="string" required>
+  素材组名称
+</ParamField>
+
+<ParamField body="description" type="string">
+  描述；省略或空串时用 API Key 所属用户 `username` 兜底
+</ParamField>
+
+<ParamField body="channel_id" type="integer">
+  上游渠道 ID，省略则自动选择
+</ParamField>
+
+<ParamField body="group_type" type="string" default="aigc">
+  仅支持 `aigc`；`liveness_face` 不可在此创建
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/asset-groups" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "角色A",
+    "description": "测试角色"
+  }'
+```
+
+## 响应示例
+
+```json
+{
+  "group_id": "group-20260508120000-abcde",
+  "name": "角色A",
+  "description": "测试角色",
+  "group_type": "aigc"
+}
+```
+
+保存 `group_id` 供 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset) 使用。

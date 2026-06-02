@@ -1,0 +1,44 @@
+---
+title: 'Moderations'
+description: 'Check whether text violates usage policies'
+api: 'POST https://api.tennda.ai/v1/moderations'
+---
+
+## Introduction
+
+Moderate text for policy violations, compatible with the OpenAI Moderations API. This endpoint is one compliance tool among others; it does not replace your own safety governance or upstream policies. Public-facing services should also have abuse reporting, auditing, and enforcement.
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request parameters
+
+<ParamField body="input" type="string | array" required>
+  Text to moderate (string or array)
+</ParamField>
+
+<ParamField body="model" type="string">
+  Moderation model, e.g. `text-moderation-latest`
+</ParamField>
+
+## Request example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/moderations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "text-moderation-latest",
+    "input": "Text to check"
+  }'
+```
+
+## Common parameters
+
+- **input**: One or more strings to check  
+- **model**: Moderation model ID  
+
+Responses include `results` with `flagged` and per-category scores. See [OpenAI Moderations](https://platform.openai.com/docs/api-reference/moderations).

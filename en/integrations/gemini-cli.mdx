@@ -1,0 +1,480 @@
+---
+title: 'Gemini CLI'
+description: 'Use Gemini CLI for AI-assisted coding via TenndaAI: code generation, code review, Q&A and more'
+---
+
+## 1. Overview
+
+**Gemini CLI** is Google's official command-line AI coding tool that lets you interact with Gemini models directly from your terminal. Through **TenndaAI** as the gateway, you can:
+
+<CardGroup cols={2}>
+  <Card title="Terminal-native" icon="terminal">
+    Call Gemini 3.5 / 3.1 / 2.5 models right from your shell
+  </Card>
+  <Card title="AI-assisted coding" icon="code">
+    Code generation, review and unit-test automation
+  </Card>
+  <Card title="Smart Q&A" icon="message-question">
+    Tech questions, architecture design and debugging
+  </Card>
+  <Card title="Docs generation" icon="file-lines">
+    Auto-generate READMEs, API docs and JSDoc comments
+  </Card>
+</CardGroup>
+
+<Info>
+Using **TenndaAI** as the gateway gives you optimized connectivity, unified API key management, and one-stop access to Claude, GPT and Gemini under a single account.
+</Info>
+
+## 2. Prerequisites
+
+- **Node.js** ≥ 18.0.0
+- **npm** or **yarn**
+- An API key from the [TenndaAI console](https://client.tennda.ai/#/keys) (format `sk-xxxxxxxxxx`)
+
+## 3. Quick Start
+
+### Step 1 — Install Gemini CLI
+
+<CodeGroup>
+```bash npm
+node --version  # must be >= 18
+
+npm install -g @google/gemini-cli
+
+gemini --version
+```
+
+```bash yarn
+node --version  # must be >= 18
+
+yarn global add @google/gemini-cli
+
+gemini --version
+```
+</CodeGroup>
+
+### Step 2 — Get a TenndaAI API key
+
+<Steps>
+  <Step title="Sign in to TenndaAI">
+    Go to [client.tennda.ai](https://client.tennda.ai) and register or log in.
+  </Step>
+  <Step title="Create an API key">
+    Open the [API Keys](https://client.tennda.ai/#/keys) page and click "Create new token".
+  </Step>
+  <Step title="Copy the key">
+    Copy the generated key (format: `sk-xxxxxxxxxx`) and store it safely.
+  </Step>
+</Steps>
+
+### Step 3 — Configure environment variables
+
+<Warning>
+**Important**: `GOOGLE_GEMINI_BASE_URL` must be set to `https://api.tennda.ai`. **Do not** append `/v1`, `/gemini`, or any other path — it will break the connection.
+</Warning>
+
+<Tabs>
+  <Tab title="Zsh (macOS / Linux)">
+    ```bash
+    # Edit your .zshrc
+    nano ~/.zshrc
+
+    # Add these environment variables
+    export GOOGLE_GEMINI_BASE_URL="https://api.tennda.ai"
+    export GEMINI_API_KEY="sk-your-tennda-key"  # replace with your TenndaAI key
+
+    # Reload
+    source ~/.zshrc
+    ```
+  </Tab>
+  <Tab title="Bash (Linux)">
+    ```bash
+    nano ~/.bashrc
+
+    export GOOGLE_GEMINI_BASE_URL="https://api.tennda.ai"
+    export GEMINI_API_KEY="sk-your-tennda-key"
+
+    source ~/.bashrc
+    ```
+  </Tab>
+  <Tab title="PowerShell (Windows)">
+    ```powershell
+    # Temporary (current session)
+    $env:GOOGLE_GEMINI_BASE_URL="https://api.tennda.ai"
+    $env:GEMINI_API_KEY="sk-your-tennda-key"
+
+    # Persistent (recommended)
+    [System.Environment]::SetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'https://api.tennda.ai', 'User')
+    [System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'sk-your-tennda-key', 'User')
+    ```
+  </Tab>
+  <Tab title="CMD (Windows)">
+    ```cmd
+    :: Temporary
+    set GOOGLE_GEMINI_BASE_URL=https://api.tennda.ai
+    set GEMINI_API_KEY=sk-your-tennda-key
+
+    :: Persistent (needs admin)
+    setx GOOGLE_GEMINI_BASE_URL "https://api.tennda.ai"
+    setx GEMINI_API_KEY "sk-your-tennda-key"
+    ```
+  </Tab>
+</Tabs>
+
+### Step 4 — Initialize and test
+
+<Steps>
+  <Step title="Start the CLI">
+    ```bash
+    gemini
+    ```
+  </Step>
+  <Step title="First-time auth">
+    In the interactive UI, type:
+
+    ```
+    /auth
+    ```
+
+    Choose **Gemini API Key (AI Studio)**.
+  </Step>
+  <Step title="Test the connection">
+    ```bash
+    # Simple test
+    gemini "Hello, is the connection working?"
+
+    # Coding test
+    gemini "Explain how to use React Hooks"
+    gemini "Write a Python function that computes Fibonacci numbers"
+    ```
+  </Step>
+</Steps>
+
+## 4. Recommended Models (via TenndaAI)
+
+TenndaAI ships with the latest Gemini family. All of these are callable from the CLI:
+
+### Gemini 3.x series (recommended)
+
+| Model ID | Best for | Notes |
+|----------|----------|-------|
+| **gemini-3.5-flash** ⭐ | High-throughput chat, low-latency tools | Latest fast variant, fastest in class |
+| **gemini-3.1-pro-preview** | Deep reasoning, high-quality codegen | Next-gen core model |
+| **gemini-3.1-flash-lite-preview** | High-concurrency, batch jobs | Best price/perf fast tier |
+| **gemini-3.1-flash-image-preview** | Image understanding / text-to-image | Multimodal enhanced |
+| **gemini-3-pro-image-preview** | High-quality text-to-image | Image-focused variant |
+| **gemini-3-flash-preview** | Multi-turn chat, tool use | Balanced speed and quality |
+
+<Info>
+**Suggested defaults**:
+
+- Complex coding / architecture: **gemini-3.1-pro-preview**
+- Daily coding & Q&A: **gemini-3.5-flash**
+- Batch / high-frequency: **gemini-3.1-flash-lite-preview**
+</Info>
+
+See the [TenndaAI model list](https://client.tennda.ai/#/models) for the full catalog.
+
+## 5. Core Features
+
+### 5.1 Code generation
+
+<Tabs>
+  <Tab title="Function">
+    ```bash
+    gemini "Write a quicksort algorithm in Python with detailed comments"
+    ```
+
+    **Sample output**:
+
+    ```python
+    def quick_sort(arr):
+        """
+        Quicksort
+        Time:  O(n log n) avg, O(n^2) worst
+        Space: O(log n)
+        """
+        if len(arr) <= 1:
+            return arr
+
+        pivot = arr[len(arr) // 2]
+        left = [x for x in arr if x < pivot]
+        middle = [x for x in arr if x == pivot]
+        right = [x for x in arr if x > pivot]
+
+        return quick_sort(left) + middle + quick_sort(right)
+    ```
+  </Tab>
+  <Tab title="Project scaffold">
+    ```bash
+    gemini "Create an Express.js REST API project structure with auth and database config"
+    ```
+  </Tab>
+  <Tab title="Unit tests">
+    ```bash
+    gemini "Write Jest unit tests for this function:
+    function fibonacci(n) {
+      if (n <= 1) return n;
+      return fibonacci(n - 1) + fibonacci(n - 2);
+    }"
+    ```
+  </Tab>
+</Tabs>
+
+### 5.2 Code review
+
+```bash
+# Performance / bugs
+gemini "Review this code for performance issues and potential bugs:
+[paste your code]"
+
+# Security audit
+gemini "Audit this code for security vulnerabilities, especially SQL injection and XSS"
+
+# Best practices
+gemini "What can be improved in this React component? Does it follow best practices?"
+```
+
+### 5.3 Technical Q&A
+
+```bash
+gemini "Explain JavaScript closures with real-world use cases"
+gemini "Why is my Promise not resolving correctly?"
+gemini "Compare microservices vs. monolithic architecture pros and cons"
+```
+
+### 5.4 Documentation generation
+
+```bash
+gemini "Generate a professional README.md for my Node.js library, including install, usage and API docs"
+gemini "Generate OpenAPI 3.0 spec for this REST endpoint"
+gemini "Add detailed JSDoc comments to the following code"
+```
+
+## 6. Interactive Commands
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `/auth` | Re-authenticate | `/auth` |
+| `/model` | Switch model | `/model gemini-3.1-pro-preview` |
+| `/clear` | Clear conversation | `/clear` |
+| `/help` | Show help | `/help` |
+| `/exit` | Quit CLI | `/exit` or `Ctrl+C` |
+| `/save` | Save conversation to file | `/save conversation.txt` |
+
+<Tip>
+**Switching models**: use `/model` interactively, or specify via `--model`:
+
+```bash
+gemini --model gemini-3.1-pro-preview "your question"
+gemini --model gemini-3.5-flash "quick test"
+```
+</Tip>
+
+## 7. Advanced Usage
+
+### 7.1 GitHub Actions (automated review)
+
+```yaml
+name: Gemini Code Review
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Gemini CLI
+        run: npm install -g @google/gemini-cli
+
+      - name: Run Code Review
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_GEMINI_BASE_URL: https://api.tennda.ai
+        run: |
+          gemini "Review this Pull Request for quality, security and performance:
+          $(git diff origin/main...HEAD)"
+```
+
+### 7.2 Batch scripts
+
+```bash
+#!/bin/bash
+
+# Batch code review
+for file in src/**/*.js; do
+  echo "Reviewing $file..."
+  gemini "Review code quality of $file" < "$file"
+done
+
+# Generate project doc outline
+gemini "Generate a technical doc outline for the whole project" < README.md
+```
+
+## 8. FAQ
+
+<AccordionGroup>
+  <Accordion title="Connection or auth failures?">
+    **Checklist**:
+
+    1. **Env vars correct?**
+       ```bash
+       echo $GOOGLE_GEMINI_BASE_URL
+       echo $GEMINI_API_KEY
+       ```
+
+       Expected:
+       - `GOOGLE_GEMINI_BASE_URL`: `https://api.tennda.ai` (**no** `/v1` or other path)
+       - `GEMINI_API_KEY`: full `sk-…` key
+
+    2. **Reload env**:
+       ```bash
+       source ~/.zshrc  # or source ~/.bashrc
+       ```
+
+    3. **Restart terminal**: close and reopen the terminal window.
+
+    4. **Validate the key** in the [TenndaAI console](https://client.tennda.ai/#/keys) — ensure it's active and has balance.
+  </Accordion>
+
+  <Accordion title="How do I switch Gemini models?">
+    **Option A — interactive `/model`**:
+
+    ```
+    /model gemini-3.1-pro-preview
+    /model gemini-3.5-flash
+    ```
+
+    **Option B — CLI flag**:
+
+    ```bash
+    gemini --model gemini-3.1-pro-preview "your question"
+    gemini --model gemini-3.5-flash "quick test"
+    ```
+  </Accordion>
+
+  <Accordion title="How do I save conversation history?">
+    **Method 1**: use `/save`
+
+    ```
+    /save conversation-2025-01-01.txt
+    ```
+
+    **Method 2**: shell redirection
+
+    ```bash
+    gemini "your question" > output.txt
+    gemini "your question" | tee output.txt   # show and save
+    ```
+  </Accordion>
+
+  <Accordion title="Node.js version too old?">
+    **Use nvm** to manage Node:
+
+    ```bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+
+    nvm install 18
+    nvm use 18
+    nvm alias default 18
+
+    node --version
+    ```
+  </Accordion>
+
+  <Accordion title="Why are responses slow?">
+    Possible causes and fixes:
+
+    1. **Network**: TenndaAI provides optimized routes; check status on the [console](https://client.tennda.ai).
+    2. **Model choice**: use `gemini-3.5-flash` or `gemini-3.1-flash-lite-preview` for fastest responses.
+    3. **Token size**: reduce request complexity and context length.
+
+    **Benchmark**:
+
+    ```bash
+    time gemini --model gemini-3.5-flash "Hello"
+    ```
+  </Accordion>
+
+  <Accordion title="How to use on Windows?">
+    **PowerShell (recommended)**:
+
+    1. Install Node.js from [nodejs.org](https://nodejs.org/)
+    2. Open PowerShell as **Administrator**
+    3. Set env vars:
+       ```powershell
+       [System.Environment]::SetEnvironmentVariable('GOOGLE_GEMINI_BASE_URL', 'https://api.tennda.ai', 'User')
+       [System.Environment]::SetEnvironmentVariable('GEMINI_API_KEY', 'sk-your-key', 'User')
+       ```
+    4. **Restart** PowerShell
+    5. Install: `npm install -g @google/gemini-cli`
+
+    Or use **WSL** for a more native experience.
+  </Accordion>
+</AccordionGroup>
+
+## 9. Best Practices
+
+### Prompt design
+
+<CardGroup cols={2}>
+  <Card title="Be specific" icon="bullseye">
+    ❌ "Optimize this code"
+
+    ✅ "Optimize this code for performance, focus on loop efficiency and memory use"
+  </Card>
+  <Card title="Provide context" icon="book">
+    ❌ "What's wrong with this function?"
+
+    ✅ "This handles user login and throws an async error — help me find the bug"
+  </Card>
+  <Card title="Break into steps" icon="list-ol">
+    ❌ "Build the whole project"
+
+    ✅ "Step 1: design DB model; Step 2: build API routes; Step 3: ..."
+  </Card>
+  <Card title="Ask for examples" icon="code">
+    ❌ "Explain closures"
+
+    ✅ "Explain JS closures with 3 practical scenarios and code examples"
+  </Card>
+</CardGroup>
+
+### Recommended workflow
+
+<Steps>
+  <Step title="Define the problem">
+    Clearly describe what you want to solve or build.
+  </Step>
+  <Step title="Get a solution">
+    Use Gemini CLI to draft an initial solution or code.
+  </Step>
+  <Step title="Review & refine">
+    Ask the AI to review its own output and flag issues.
+  </Step>
+  <Step title="Iterate">
+    Improve step by step based on feedback.
+  </Step>
+  <Step title="Add docs">
+    Generate comments and documentation.
+  </Step>
+</Steps>
+
+## 10. References
+
+- Gemini CLI official docs: [https://ai.google.dev/gemini-api/docs/cli](https://ai.google.dev/gemini-api/docs/cli)
+- TenndaAI console: [https://client.tennda.ai](https://client.tennda.ai)
+- Model list: [https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)
+- Quickstart: [/en/quickstart](/en/quickstart)
+
+<Tip>
+**Get going in 5 minutes**: follow the "Quick Start" section above and you'll be using Gemini CLI in no time.
+</Tip>

@@ -1,0 +1,76 @@
+---
+title: 'Embeddings (OpenAI format)'
+description: 'POST /v1/embeddings text embeddings'
+api: 'POST https://api.tennda.ai/v1/embeddings'
+---
+
+## Introduction
+
+Convert text to vector embeddings for semantic search, similarity, and clustering. Compatible with the OpenAI Embeddings API.
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  Model name, e.g. `text-embedding-3-small`, `text-embedding-3-large`, `text-embedding-ada-002`
+</ParamField>
+
+<ParamField body="input" type="string | array" required>
+  Text to embed (string or array of strings)
+</ParamField>
+
+<ParamField body="encoding_format" type="string" default="float">
+  `float` or `base64`
+</ParamField>
+
+<ParamField body="dimensions" type="integer">
+  Output dimensions (some models only)
+</ParamField>
+
+## Example
+
+```bash
+curl https://api.tennda.ai/v1/embeddings \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -d '{
+    "model": "text-embedding-3-small",
+    "input": "Hello, world"
+  }'
+```
+
+## Python example
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-xxxxxxxxxx",
+    base_url="https://api.tennda.ai/v1"
+)
+
+response = client.embeddings.create(
+    model="text-embedding-3-small",
+    input="Hello, world"
+)
+
+print(response.data[0].embedding)
+```
+
+## Supported models
+
+| Model | Dimensions | Notes |
+|-------|------------|-------|
+| text-embedding-3-small | 1536 | Cost-effective |
+| text-embedding-3-large | 3072 | High precision |
+| text-embedding-ada-002 | 1536 | Legacy |
+
+<Note>
+- Pass an array to `input` for batch embedding  
+- Some models support custom `dimensions`  
+</Note>

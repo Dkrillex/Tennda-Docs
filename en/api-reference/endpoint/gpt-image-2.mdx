@@ -1,0 +1,81 @@
+---
+title: 'GPT-Image-2'
+description: 'OpenAI GPT-Image-2 text-to-image and image-to-image'
+api: 'POST https://api.tennda.ai/v1/images/generations'
+---
+
+## Introduction
+
+GPT-Image-2 uses `POST /v1/images/generations` for both text-to-image and image-to-image: omit `image` for T2I; include `image` (URL or Base64) for I2I. Responses use `b64_json` with `usage` token stats.
+
+For full parameters and other image models, see [Image generation](/en/api-reference/endpoint/image-generation).
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Supported models
+
+| Model ID | Description |
+|----------|-------------|
+| `gpt-image-2` | OpenAI GPT-Image-2, multi-size including 4K |
+
+## Request examples
+
+<Tabs>
+  <Tab title="Text-to-image">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "A white cat running under the stars, cyberpunk style",
+        "size": "1024x1536",
+        "quality": "high",
+        "n": 1
+      }'
+    ```
+  </Tab>
+  <Tab title="Image-to-image (generations)">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "Change the scene to night cyberpunk",
+        "image": "https://example.com/input.png",
+        "size": "1024x1024",
+        "quality": "high"
+      }'
+    ```
+  </Tab>
+  <Tab title="Image-to-image (edits)">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "Change background to beach sunset",
+        "image": "https://example.com/input.png",
+        "size": "1024x1024",
+        "quality": "high"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Common parameters
+
+- **model**: `gpt-image-2`  
+- **prompt**: Description or edit instruction  
+- **image**: Reference image for I2I  
+- **size**: e.g. `1024x1024`, `1024x1536`, `2880x2880` (dimensions multiple of 16)  
+- **quality**: `low`, `medium`, `high`  
+- **n**: Number of images (1–10)  
+
+See [Image edits](/en/api-reference/endpoint/image-edits) for multipart and more examples; [Image generation](/en/api-reference/endpoint/image-generation) for the full overview.

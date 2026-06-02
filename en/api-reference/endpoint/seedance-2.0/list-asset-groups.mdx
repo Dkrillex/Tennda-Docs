@@ -1,0 +1,29 @@
+---
+title: 'List asset groups'
+description: 'GET /v1/asset-groups'
+api: 'GET https://api.tennda.ai/v1/asset-groups'
+---
+
+## Introduction
+
+List asset groups for the current user.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Query parameters
+
+<ParamField query="group_type" type="string" default="aigc">
+  `aigc`, `liveness_face`, or `all`. **Omitted defaults to `aigc` only**
+</ParamField>
+
+## Example
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/asset-groups?group_type=all" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

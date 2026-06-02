@@ -1,0 +1,87 @@
+---
+title: 'Gemini 原生（图像）'
+description: 'Gemini generateContent 与 Chat Completions 图像生成'
+api: 'POST https://api.tennda.ai/v1beta/models/{model}:generateContent'
+---
+
+## 简介
+
+Gemini 图像可通过两种协议调用：
+
+- **Gemini 原生**：`POST /v1beta/models/{model}:generateContent`，设置 `responseModalities: ["IMAGE"]` 与 `imageConfig`
+- **OpenAI 兼容**：`POST /v1/images/generations`（见 [Nano Banana](/cn/api-reference/endpoint/nano-banana)）或 `POST /v1/chat/completions`（部分图像模型）
+
+若使用 OpenAI SDK 或统一 `images/generations` 入口，请优先阅读 Nano Banana 文档。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+<ParamField header="x-goog-api-key" type="string">
+  可选：`x-goog-api-key: sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型（示例）
+
+| 模型 ID | 说明 | 推荐端点 |
+|---------|------|----------|
+| `gemini-2.5-flash-image` | Nano Banana | `/v1/images/generations` 或原生 `generateContent` |
+| `gemini-3-pro-image-preview` | Nano Banana Pro | 同上 |
+
+## 请求示例
+
+<Tabs>
+  <Tab title="Gemini 原生（generateContent）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1beta/models/gemini-2.5-flash-image:generateContent" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "contents": [
+          {
+            "role": "user",
+            "parts": [{"text": "画一只在花园里玩耍的橙色小猫，高质量摄影"}]
+          }
+        ],
+        "generationConfig": {
+          "responseModalities": ["IMAGE"],
+          "imageConfig": {
+            "aspectRatio": "16:9",
+            "imageSize": "2K",
+            "imageOutputOptions": {"mimeType": "image/png"}
+          }
+        }
+      }'
+    ```
+
+    图片在 `candidates[0].content.parts[].inlineData`（Base64）。
+  </Tab>
+  <Tab title="OpenAI Chat（图像）">
+    部分集成通过 Chat Completions 调用 Gemini 图像模型：
+
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/chat/completions" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gemini-2.5-flash-image",
+        "messages": [
+          {"role": "user", "content": "生成一张赛博朋克风格的城市夜景"}
+        ]
+      }'
+    ```
+
+    具体响应字段因模型而异，推荐新接入使用 `generateContent` 或 [Nano Banana](/cn/api-reference/endpoint/nano-banana)。
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+- **generationConfig.responseModalities**：须包含 `"IMAGE"`  
+- **generationConfig.imageConfig.aspectRatio**：如 `1:1`、`16:9`  
+- **generationConfig.imageConfig.imageSize**：如 `1K`、`2K`、`3K`  
+- **contents[].parts**：文生图为 `text`；图生图可加入 `inlineData`（图片 Base64）  
+
+完整 Gemini 能力（思考模式、工具调用、流式等）见 [原生 Gemini 格式](/cn/api-reference/endpoint/gemini-native)。

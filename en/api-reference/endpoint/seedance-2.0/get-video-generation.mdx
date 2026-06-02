@@ -1,0 +1,37 @@
+---
+title: "Get video generation"
+description: "Seedance 2.0 GET /v1/video/generations/{task_id}"
+api: "GET https://api.tennda.ai/v1/video/generations/{task_id}"
+---
+
+## Introduction
+
+Poll task status and result by `task_id`. Query every ~5 seconds.
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="task_id" type="string" required>
+  `task_id` from create response
+</ParamField>
+
+## Example
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## Status
+
+| status | Meaning |
+| --- | --- |
+| `queued` | Queued |
+| `in_progress` | Generating |
+| `completed` | Success; read `video_url` or `url` |
+| `failed` | See `error`; optional [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result) |

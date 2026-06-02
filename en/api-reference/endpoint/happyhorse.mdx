@@ -1,0 +1,304 @@
+---
+title: 'HappyHorse Video Generation'
+description: 'Alibaba HappyHorse text-to-video, image-to-video, and reference-to-video'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## Introduction
+
+HappyHorse is Alibaba Cloud Bailian's video generation family: text-to-video (HappyHorse-T2V), image-to-video (HappyHorse-I2V), and reference-to-video (HappyHorse-R2V). It produces physically realistic, smooth-motion videos at **720P** and **1080P**, with durations from **3–15 seconds**.
+
+Use TenndaAI's unified video API: [submit a task](/en/api-reference/endpoint/submit-video-task) to get a `task_id`, then [query the task](/en/api-reference/endpoint/query-video-task) to poll status and get `url`.
+
+<Note>
+  HappyHorse passes underlying DashScope parameters via `metadata.input` and `metadata.parameters`, same structure as Wan 2.7. Reference-to-video uses **`[Image 1]`, `[Image 2]`** in the prompt (English bracket format) and supports image references only—no video references.
+</Note>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Supported models
+
+| Model ID | Description | Resolution | Max duration | Highlights |
+|----------|-------------|------------|--------------|------------|
+| `happyhorse-1.0-t2v` | Text-to-video | 720P, 1080P | 15s | Text semantics, multiple aspect ratios |
+| `happyhorse-1.0-i2v` | Image-to-video (first frame) | 720P, 1080P | 15s | First-frame driven; aspect ratio follows input |
+| `happyhorse-1.0-r2v` | Reference-to-video | 720P, 1080P | 15s | Up to 9 reference images, subject fusion |
+
+## Workflow
+
+1. **Submit task**: `POST /v1/video/generations` with `model`, `prompt`, `duration`, and HappyHorse params in `metadata`.
+2. **Poll status**: `GET /v1/video/generations/{task_id}` every 3–15 seconds until `status` is `succeeded` or `failed`.
+3. **Get result**: On success, `url` contains the video link (typically valid for 24 hours—download promptly).
+
+## Common request structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model ID (see table above) |
+| `prompt` | string | Varies | Video prompt (same as `metadata.input.prompt`) |
+| `duration` | integer | No | Duration in seconds; keep in sync with `metadata.parameters.duration` |
+| `metadata.input` | object | Yes | Input: `prompt`, `media`, etc. |
+| `metadata.parameters` | object | No | Params: `resolution`, `ratio`, `duration`, `watermark`, `seed`, etc. |
+
+### Submit response
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "submitted",
+  "format": "mp4"
+}
+```
+
+### Query response (success)
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "succeeded",
+  "format": "mp4",
+  "url": "https://tennda-ads.oss-cn-guangzhou.aliyuncs.com/2025/11/18/abc123/video.mp4"
+}
+```
+
+## Use cases
+
+<Tabs>
+  <Tab title="Text-to-video (T2V)">
+Generate physically realistic, smooth-motion video from a text prompt.
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  Text prompt describing the desired video
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` or `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  Aspect ratio: `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `4:5`, `5:4`, `9:21`, `21:9`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  Duration in seconds, range 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  Add watermark (fixed text "Happy Horse" at bottom-right)
+</ParamField>
+
+<ParamField body="metadata.parameters.seed" type="integer">
+  Random seed, range `[0, 2147483647]`, for reproducibility
+</ParamField>
+
+**Example:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-t2v",
+    "prompt": "A miniature city built from cardboard and bottle caps comes alive at night. A cardboard train rolls through, tiny lights illuminating the path ahead.",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "A miniature city built from cardboard and bottle caps comes alive at night. A cardboard train rolls through, tiny lights illuminating the path ahead."
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="Image-to-video (I2V)">
+Generate video from a first-frame image plus optional text guidance. Aspect ratio follows the first frame—**do not** pass `ratio`.
+
+#### media types
+
+| type | Description | Limit |
+|------|-------------|-------|
+| `first_frame` | First-frame image | Exactly 1 |
+
+<ParamField body="metadata.input.prompt" type="string">
+  Text prompt describing how the first frame should animate (optional)
+</ParamField>
+
+<ParamField body="metadata.input.media" type="array" required>
+  Media list with one `first_frame` object, each with `type` and `url`
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` or `1080P`. Output aspect ratio approximates the first frame
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  Duration in seconds, range 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  Add watermark
+</ParamField>
+
+**First-frame example:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-i2v",
+    "prompt": "A cat running across the grass",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "A cat running across the grass",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/first_frame.png"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="Reference-to-video (R2V)">
+Pass **1–9** reference images and describe the scene in text to fuse subjects into a smooth video. Use **`[Image 1]`, `[Image 2]`** in the prompt to refer to items in `media` (order must match).
+
+#### media types
+
+| type | Description | Limit |
+|------|-------------|-------|
+| `reference_image` | Reference image | 1–9 |
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  Prompt using `[Image n]` references; name specific objects, e.g. "the woman in a red cheongsam in [Image 1]"
+</ParamField>
+
+<ParamField body="metadata.input.media" type="array" required>
+  Reference image list; 1st item = `[Image 1]`, 2nd = `[Image 2]`, etc.
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` or `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  Aspect ratio: `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `4:5`, `5:4`, `9:21`, `21:9`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  Duration in seconds, range 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  Add watermark
+</ParamField>
+
+**Multi-reference example:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-r2v",
+    "prompt": "The woman in a red cheongsam in [Image 1] opens the folding fan from [Image 2] while tassel earrings from [Image 3] sway gently.",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "The woman in a red cheongsam in [Image 1] opens the folding fan from [Image 2] while tassel earrings from [Image 3] sway gently.",
+        "media": [
+          {"type": "reference_image", "url": "https://example.com/girl.jpg"},
+          {"type": "reference_image", "url": "https://example.com/fan.jpg"},
+          {"type": "reference_image", "url": "https://example.com/earrings.jpg"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+</Tabs>
+
+## Parameter reference
+
+### Common parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `duration` | integer | 3–15 seconds, default `5` |
+| `resolution` | string | `720P` or `1080P`, default `1080P` |
+| `watermark` | boolean | Add watermark, default `true` |
+| `seed` | integer | Random seed, range `[0, 2147483647]` |
+
+### Text-to-video & reference-to-video
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ratio` | string | `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `4:5`, `5:4`, `9:21`, `21:9`, default `16:9`. I2V follows first frame—omit `ratio` |
+
+### Media input limits
+
+| Type | Format | Size | Other limits |
+|------|--------|------|--------------|
+| First frame (`first_frame`) | JPEG, JPG, PNG, WEBP | ≤ 20MB | Width and height ≥ 300px |
+| Reference image (`reference_image`) | JPEG, JPG, PNG, WEBP | ≤ 20MB | Short edge ≥ 400px; recommend 720P+ clarity; 1–9 images |
+
+## Error handling
+
+| HTTP status | Meaning | Suggestion |
+|-------------|---------|------------|
+| 400 | Invalid request | Check `metadata` structure and media limits |
+| 401 | Unauthorized | Check API Key |
+| 429 | Rate limited | Retry with lower frequency |
+| 502 | Upstream error | Retry later |
+
+On failure, `status` is `failed` and `error.message` contains the reason.
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How long is the video URL valid?">
+    Video `url` and `task_id` are typically valid for **24 hours**. Download and store promptly.
+  </Accordion>
+  <Accordion title="How do I reference images in R2V?">
+    Use **`[Image 1]`, `[Image 2]`** in the prompt. Order matches `reference_image` entries in `media`. Describe specific objects in each reference.
+  </Accordion>
+  <Accordion title="What I2V modes are supported?">
+    HappyHorse I2V supports **first frame** (`first_frame`) only—no first+last frame, continuation, or audio driving.
+  </Accordion>
+  <Accordion title="How does this differ from Wan 2.7?">
+    Same `metadata.input` / `metadata.parameters` structure. HappyHorse R2V uses `[Image n]` and images only (up to 9); Wan 2.7 uses 图n/视频n with video refs and voice clone. HappyHorse defaults to 1080P and watermark on; duration is 3–15s.
+  </Accordion>
+</AccordionGroup>
+
+## Related endpoints
+
+<Columns cols={2}>
+  <Card title="Submit video task" icon="upload" href="/en/api-reference/endpoint/submit-video-task">
+    Unified video submission and multi-model parameters
+  </Card>
+  <Card title="Query video task" icon="search" href="/en/api-reference/endpoint/query-video-task">
+    Poll task status and get video URL
+  </Card>
+</Columns>

@@ -1,0 +1,255 @@
+---
+title: 'Trae'
+description: "ByteDance's AI-native IDE integration with TenndaAI — drive 100+ models through dual OpenAI + Anthropic protocols via custom models"
+---
+
+## 1. Introduction
+
+**Trae** is ByteDance's **AI-native IDE** released in January 2025 — a productivity tool aimed at professional developers ("Vibe Coding"): describe what you want in natural language, AI handles code completion, bug fixes, project scaffolding, and one-click preview. Trae ships as both a **China edition** (`trae.cn`) and an **International edition** (`trae.ai`), with a spin-off **SOLO** lineup (SOLO Desktop / SOLO App / SOLO Web) where AI fully drives the task lifecycle.
+
+Plug Trae into TenndaAI via its "Custom Model" mechanism and you get:
+
+<CardGroup cols={2}>
+  <Card title="🔌 Dual-protocol coverage" icon="plug">
+    Configure OpenAI and Anthropic protocols simultaneously — one key drives both
+  </Card>
+  <Card title="🤖 100+ frontier models" icon="layer-group">
+    GPT, Claude, Gemini, DeepSeek, Doubao, Qwen, Kimi, MiniMax in one place
+  </Card>
+  <Card title="🛡️ Automatic failover" icon="shield">
+    Distributed infrastructure routes around outages with backup models
+  </Card>
+  <Card title="💼 Enterprise-grade" icon="building">
+    Transparent token-level billing, org-level data policies, team/enterprise ready
+  </Card>
+</CardGroup>
+
+<Info>
+**Product info**
+
+- 🔗 China edition: `www.trae.cn`
+- 🔗 International edition: `www.trae.ai`
+- 👥 Developer: ByteDance
+- 📅 First released: January 2025
+- 🧩 Modes: Builder (agent) / Chat (sidebar) / Inline Chat
+- 🌐 Compatible protocols: OpenAI, Anthropic, and other custom providers
+</Info>
+
+## 2. Core Features
+
+### Three interaction modes
+
+- **Builder**: agent mode — AI reads/writes multiple files, runs commands, and builds the project autonomously
+- **Chat**: side-bar conversation, similar to Cursor Chat / Cline — best for Q&A and snippet generation
+- **Inline Chat**: invoke directly inside the editor with `Cmd/Ctrl + I` — fastest path for inline completion and refactors
+
+### MCP & tooling ecosystem
+
+- Built-in **MCP (Model Context Protocol)** support for connecting external tools and APIs
+- **Remote-SSH** support — remote development feels identical to local
+- `.rules` project-level rule files to constrain AI behavior style
+
+### Custom models (the focus of this guide)
+
+Trae International ships with presets for **Anthropic, OpenAI, Gemini, xAI, OpenRouter, Ollama, DeepSeek, Volcengine, Aliyun, Tencent Cloud, SiliconFlow, PPIO, Novita, BytePlus**, and each preset allows you to fill in a **custom model ID + API key + custom request URL** — exactly the hook we use to wire in TenndaAI.
+
+<Tip>
+**Why route through TenndaAI**: Trae's built-in models are limited by region and version, and there's no unified billing across providers. Wire in TenndaAI and **one key covers both OpenAI and Anthropic protocols** — switching between GPT/Gemini and Claude no longer requires touching the settings panel; just pick from the top model dropdown.
+</Tip>
+
+## 3. Prerequisites
+
+- **Trae** installed (`trae.cn` or `trae.ai`)
+- An **API key** from the [TenndaAI Console](https://client.tennda.ai/#/keys) (format: `sk-xxxxxxxxxx`)
+
+<Tip>
+**Base URL**: Trae's custom-model field requires the **full endpoint path**, not just the domain.
+- OpenAI protocol: `https://api.tennda.ai/v1/chat/completions`
+- Anthropic protocol: `https://api.tennda.ai/v1/messages`
+</Tip>
+
+## 4. Quick Start
+
+### Step 1: Install Trae
+
+<Tabs>
+  <Tab title="China edition (recommended for mainland China)">
+    Visit `www.trae.cn` to download. Supports macOS and Windows. The China edition bundles Doubao, DeepSeek, and other domestic models; login is via mobile number.
+  </Tab>
+  <Tab title="International edition">
+    Visit `www.trae.ai` to download. Supports macOS, Windows, Linux. Comes pre-configured with GPT / Claude / Gemini presets.
+  </Tab>
+</Tabs>
+
+### Step 2: Get a TenndaAI API key
+
+1. Open the [TenndaAI Console](https://client.tennda.ai/#/keys)
+2. Click "Create token", name it, and save
+3. Copy the `sk-…` key
+
+### Step 3: Open Trae's "Custom Model" entry
+
+- **In IDE mode**: click ⚙️ (top-right) → **Models** in the left nav → "Add model" / "Custom model"
+- **In SOLO mode**: click ⚙️ on the chat panel → **Models** → Add
+
+### Step 4: Add an OpenAI-protocol provider (GPT / Gemini / DeepSeek / Doubao etc.)
+
+| Field | Value | Notes |
+|---|---|---|
+| **Provider** | `OpenAI` | Pick the OpenAI preset |
+| **Model** | `Custom model` | Choose "Custom model" at the bottom of the dropdown |
+| **Model ID** | e.g. `gpt-5.5`, `gemini-3.5-flash`, `deepseek-v3-2-251201` | Use the [canonical model ID](https://client.tennda.ai/#/api-models) |
+| **API key** | `sk-…` | Paste the TenndaAI token from Step 2 |
+| **Custom request URL** | `https://api.tennda.ai/v1/chat/completions` | **Must include `/v1/chat/completions`** |
+
+<Warning>
+**The base URL must include the full path**: starting from v3.3.51, Trae's custom-model baseURL field requires the **complete endpoint path**. Submitting just `https://api.tennda.ai` or `https://api.tennda.ai/v1` will fail.
+</Warning>
+
+### Step 5: Add an Anthropic-protocol provider (Claude family)
+
+To use Claude Opus 4.7 / Sonnet 4.6 / Haiku 4.5, add a second provider entry:
+
+| Field | Value | Notes |
+|---|---|---|
+| **Provider** | `Anthropic` | Pick the Anthropic preset |
+| **Model** | `Claude-Sonnet-4.6` (or another Claude variant) | Use the official preset, or "Custom model" |
+| **API key** | `sk-…` | Paste the same TenndaAI token — keys are shared across both protocols |
+| **Custom request URL** | `https://api.tennda.ai/v1/messages` | **Must include `/v1/messages`** — note this is **not** `/v1/chat/completions` |
+
+<Info>
+**Why two protocols**: OpenAI talks `/v1/chat/completions`, Anthropic talks `/v1/messages`. TenndaAI hosts both, so a single key can drive both provider entries in Trae without interference.
+</Info>
+
+### Step 6: Switch and ship
+
+Back in the editor, click the model dropdown at the top. Both providers and their models appear together. Pick one and start chatting or jump into Builder mode.
+
+## 5. Recommended Model Pairings
+
+<CardGroup cols={2}>
+  <Card title="Daily coding (best value)" icon="code">
+    **Claude Sonnet 4.6** (Anthropic) + **GPT-5.5** (OpenAI)
+
+    Sonnet 4.6 is highly capable at code with great value; GPT-5.5 replies faster in Chat mode
+  </Card>
+  <Card title="Complex architecture (flagship)" icon="crown">
+    **Claude Opus 4.7** (Anthropic)
+
+    Best for complex refactors, cross-file analysis, architecture decisions; pair with Builder mode
+  </Card>
+  <Card title="Deep reasoning" icon="brain">
+    **Claude Sonnet 4.6 Thinking** / **GPT-5.5 Thinking**
+
+    Forces chain-of-thought reasoning — ideal for algorithm problems, logic, security audits
+  </Card>
+  <Card title="Cost-effective domestic" icon="yuan-sign">
+    **DeepSeek V3.2** / **Doubao Seed 2.0 Pro** / **Qwen3 Coder Plus**
+
+    All ride the OpenAI protocol; cheaper per token with strong Chinese output
+  </Card>
+</CardGroup>
+
+<Card title="Full model catalog and coding picks" icon="star" href="/en/api-reference/models">
+  TenndaAI exposes 100+ frontier models through a unified API. The model catalog is updated with the latest performance and pricing comparisons.
+</Card>
+
+## 6. Tips
+
+<Steps>
+  <Step title="Keep both provider entries">
+    Add **both** OpenAI and Anthropic entries so you can switch between GPT/Gemini ↔ Claude without re-editing the baseURL.
+  </Step>
+  <Step title="Can't find your model in the dropdown?">
+    Trae's built-in model list lags behind TenndaAI's catalog. **Pick "Custom model" and type the model ID manually** — that's the most reliable path. Refer to the [TenndaAI catalog](https://client.tennda.ai/#/api-models) for canonical IDs.
+  </Step>
+  <Step title="Use Claude for Builder mode">
+    Builder's agent loop relies heavily on multi-turn tool calls. Claude (especially Sonnet 4.6 / Opus 4.7) is markedly more stable at instruction-following and tool use than other model families.
+  </Step>
+  <Step title="Pin Thinking variants for complex work">
+    Append `-thinking` to the model ID (e.g. `claude-sonnet-4-6-thinking`) to force chain-of-thought reasoning. Makes Builder-mode architecture decisions and security audits much more reliable.
+  </Step>
+  <Step title="Split keys by purpose">
+    Create separate TenndaAI tokens for dev/prod or per-team in the console for cleaner quota management and reconciliation.
+  </Step>
+</Steps>
+
+## 7. FAQ
+
+<AccordionGroup>
+  <Accordion title="Any difference between Trae China and International editions when wiring up TenndaAI?">
+    **No** — both editions support custom models and allow you to add OpenAI and Anthropic provider entries side by side. The difference is mainly in the pre-bundled model presets (China edition leans on Doubao/DeepSeek; International leans on GPT/Claude/Gemini).
+
+    Recommendation: prefer `trae.cn` if you're on a mainland-China network, otherwise `trae.ai` for global teams or international model presets.
+  </Accordion>
+  <Accordion title="Why does the baseURL have to include /v1/chat/completions?">
+    Starting from **v3.3.51**, Trae changed how it resolves the custom-model baseURL — it now uses the value verbatim instead of auto-appending `/chat/completions`.
+
+    Correct values:
+
+    - OpenAI: `https://api.tennda.ai/v1/chat/completions`
+    - Anthropic: `https://api.tennda.ai/v1/messages`
+
+    Incorrect (will 404 or mis-route):
+
+    - ❌ `https://api.tennda.ai`
+    - ❌ `https://api.tennda.ai/v1`
+  </Accordion>
+  <Accordion title="Can I use 'Custom model' under the Anthropic provider for any Claude ID?">
+    Yes. The Anthropic provider entry also exposes a "Custom model" option — drop in IDs like `claude-opus-4-7` / `claude-sonnet-4-6-thinking` / `claude-haiku-4-5-20251001`. TenndaAI's `/v1/messages` endpoint accepts all official model IDs.
+  </Accordion>
+  <Accordion title="Why don't I see GPT-5.5 / Claude 4.7 in Trae's dropdown?">
+    Trae's built-in presets lag the actual provider catalog. **Just pick "Custom model" and type the ID** — anything TenndaAI supports works in Trae without waiting for the client to update.
+  </Accordion>
+  <Accordion title="Builder mode keeps stalling / tool calls fail. What now?">
+    1. **Default to Claude Sonnet 4.6 or Opus 4.7** — both lead in tool-use stability
+    2. **Avoid non-reasoning small models** like DeepSeek-Chat / Qwen base for Builder; switch to `-thinking` variants
+    3. **Watch context length** — when a single file is huge or you're touching many files, move to Opus 4.7 (1M context)
+    4. **Check TenndaAI status** — transient upstream issues affect all clients; the console shows live channel health
+  </Accordion>
+  <Accordion title="How does Trae handle privacy / data upload?">
+    Trae is a ByteDance product and uploads telemetry / conversation data per its official privacy policy. If client telemetry is a concern:
+
+    - Whitelist outbound traffic at your network egress
+    - Mask sensitive snippets before invoking Builder mode
+    - Consider [Claude Code](/en/integrations/claude-code) / [Codex](/en/integrations/codex) as open-source / auditable alternatives
+  </Accordion>
+  <Accordion title="Trae vs Cursor / Claude Code / Codex — how to choose?">
+    | Tool | Type | Agent mode | TenndaAI difficulty | Best for |
+    |---|---|---|---|---|
+    | **Trae** | Standalone IDE | ✅ Builder | Medium (two protocol entries) | Cursor-like experience with stronger China / Chinese support |
+    | **Cursor** | Standalone IDE | ❌ (Chat only) | Easy (OpenAI only) | Strong autocomplete & diff preview |
+    | **Claude Code** | CLI | ✅ | Easy | Terminal workflow, CI / remote dev |
+    | **Codex** | CLI | ✅ | Easy | Official OpenAI terminal agent, full GPT family |
+    | **Open Code** | CLI | ✅ | Easy | Open-source CLI agent, multi-provider |
+
+    Detailed guides: [Codex](/en/integrations/codex) · [Claude Code](/en/integrations/claude-code) · [Open Code](/en/integrations/open-code) · [Gemini CLI](/en/integrations/gemini-cli)
+  </Accordion>
+  <Accordion title="Requests return 401 / 403 — how to troubleshoot?">
+    1. Confirm the API key starts with `sk-` and has no stray whitespace
+    2. Confirm the baseURL is spelled correctly (`/v1/chat/completions` vs `/v1/messages`)
+    3. Open the [TenndaAI Console](https://client.tennda.ai/#/keys) to verify the token is active and the account has balance
+    4. Insufficient balance also surfaces as 401 — double-check
+  </Accordion>
+</AccordionGroup>
+
+## 8. Related Resources
+
+<CardGroup cols={2}>
+  <Card title="Model catalog" icon="star" href="/en/api-reference/models">
+    100+ models with performance / pricing comparisons and coding picks
+  </Card>
+  <Card title="TenndaAI Console" icon="gear" href="https://client.tennda.ai">
+    Manage tokens, usage, and projects
+  </Card>
+  <Card title="Codex integration" icon="terminal" href="/en/integrations/codex">
+    OpenAI's official terminal agent, full GPT family
+  </Card>
+  <Card title="Claude Code integration" icon="code" href="/en/integrations/claude-code">
+    Anthropic's official CLI agent, full Claude family
+  </Card>
+</CardGroup>
+
+<Info>
+**Need more help?** Reach our BD team at [bd@tennda.ai](mailto:bd@tennda.ai) or call +86 151 1306 2111.
+</Info>

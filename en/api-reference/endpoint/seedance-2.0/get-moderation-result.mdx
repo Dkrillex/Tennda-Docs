@@ -1,0 +1,29 @@
+---
+title: 'Get moderation result'
+description: 'GET /v1/video/generations/moderation-result/{task_id}'
+api: 'GET https://api.tennda.ai/v1/video/generations/moderation-result/{task_id}'
+---
+
+## Introduction
+
+When a Seedance 2.0 task fails for content safety or copyright, query upstream moderation details. Requires channel whitelist; valid 14 days after create; first query is cached.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="task_id" type="string" required>
+  Failed task `task_id` (`seedance-2-0` / `seedance-2-0-fast` only)
+</ParamField>
+
+## Example
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/video/generations/moderation-result/ut-abc123" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

@@ -1,0 +1,50 @@
+---
+title: 'Create asset'
+description: 'POST /v1/assets'
+api: 'POST https://api.tennda.ai/v1/assets'
+---
+
+## Introduction
+
+Create an asset in a group. Public **https** URLs only. Initial `status` is `processing`; poll until `active` before using `asset://`.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request body
+
+<ParamField body="group_id" type="string" required>
+  Asset group ID
+</ParamField>
+
+<ParamField body="asset_type" type="string" required>
+  `image`, `video`, `audio`
+</ParamField>
+
+<ParamField body="url" type="string" required>
+  Public https URL
+</ParamField>
+
+<ParamField body="name" type="string">
+  Asset name
+</ParamField>
+
+## Example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "group_id": "group-20260508120000-abcde",
+    "asset_type": "image",
+    "url": "https://example.com/face.jpg",
+    "name": "Reference"
+  }'
+```
+
+Use in generation: `asset://asset-20260508120001-xyz` (mapped by `asset_type`).

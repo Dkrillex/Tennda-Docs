@@ -1,0 +1,90 @@
+---
+title: 'Sora格式'
+description: 'OpenAI 兼容 POST /v1/videos 视频接口'
+api: 'POST https://api.tennda.ai/v1/videos'
+---
+
+## 简介
+
+Sora 2 除可通过统一接口 [提交视频任务](/cn/api-reference/endpoint/submit-video-task)（`POST /v1/video/generations`）调用外，还支持 OpenAI **Videos API** 原生路径：
+
+- **创建任务**：`POST /v1/videos`（推荐 `multipart/form-data`）
+- **查询任务**：`GET /v1/videos/{task_id}`
+- **下载视频**：[下载视频](/cn/api-reference/endpoint/download-video)（`GET /v1/video/generations/download?id=...`）
+
+<Note>
+  仅 **Sora 2** 系列使用 `/v1/videos` 与专用下载接口；Veo、万相、Seedance 等请使用 `/v1/video/generations`。
+</Note>
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型
+
+| 模型 ID | 说明 |
+|---------|------|
+| `sora-2` | 文生视频、图生视频、Remix 视频生视频 |
+
+## 请求示例
+
+<Tabs>
+  <Tab title="创建任务（multipart）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/videos" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -F "model=sora-2" \
+      -F "prompt=一只可爱的小猫在花园里玩耍，阳光明媚" \
+      -F "seconds=4" \
+      -F "size=1280x720"
+    ```
+
+    图生视频可附加参考图：
+
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/videos" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -F "model=sora-2" \
+      -F "prompt=小猫慢慢睁开眼睛" \
+      -F "seconds=4" \
+      -F "size=720x1280" \
+      -F "input_reference=@reference.png"
+    ```
+  </Tab>
+  <Tab title="查询任务">
+    ```bash
+    curl -X GET "https://api.tennda.ai/v1/videos/video_69095b4ce0048190893a01510c0c98b0" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx"
+    ```
+  </Tab>
+  <Tab title="统一接口（可选）">
+    也可使用 JSON 统一入口，参数见 [提交视频任务](/cn/api-reference/endpoint/submit-video-task) 中 Sora 2 示例：
+
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/video/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "sora-2",
+        "prompt": "一只可爱的小猫在花园里玩耍",
+        "seconds": "4",
+        "size": "1280x720"
+      }'
+    ```
+
+    轮询使用 [查询视频任务](/cn/api-reference/endpoint/query-video-task)（`GET /v1/video/generations/{task_id}`）。
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+- **model**：`sora-2`  
+- **prompt**：画面描述  
+- **seconds**：时长，支持 `4`、`8`、`12`  
+- **size**：`1280x720`（横屏）或 `720x1280`（竖屏）  
+- **input_reference**：参考图（图生视频）  
+- **remix_from_video_id**：Remix 模式，基于已有 `video_` 前缀任务 ID  
+
+参考 [OpenAI Videos API](https://platform.openai.com/docs/api-reference/videos)。

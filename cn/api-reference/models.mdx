@@ -1,0 +1,206 @@
+---
+title: '支持的模型'
+description: 'TenndaAI 模型广场:聚合 Anthropic、OpenAI、Google、Qwen、豆包、DeepSeek、GLM、MiniMax、Kimi 等 100+ 主流 AI 模型,一个接口,自由路由'
+---
+
+## 一个接口,接入 100+ 模型
+
+**TenndaAI** 是面向 Agent 场景的统一 AI 模型接入平台。一套兼容 **OpenAI SDK** 的接口,即可路由到 100+ 主流模型,无需为每家厂商重复对接、无需订阅、按量计费。
+
+<Note>
+**Better prices, higher uptime, no subscriptions.** — 更优价格、更高可用、无需订阅。分布式基础设施支持自动故障转移,某家供应商不可用时自动切换备份;支持组织级数据策略,精细控制哪些供应商可访问数据。
+</Note>
+
+## ⭐ 本周精选模型 (Featured this week)
+
+| 模型 | 提供方 | 本周用量 | 适用场景 |
+|---|---|---|---|
+| **Claude Opus 4.7** ⭐ | Anthropic | 638.4B tokens | 复杂代理、生产级代码、长程任务 |
+| **Gemini 3.5 Flash** | Google | 494.0B tokens | 高吞吐对话、低延迟工具调用 |
+| **GPT-5.5** | OpenAI | 141.4B tokens | 推理、文案、综合编程 |
+
+完整模型列表与实时价格请访问 [TenndaAI 模型广场](https://client.tennda.ai/#/api-models)。
+
+## 信任的模型提供方
+
+TenndaAI 已对接全球顶级模型提供方,所有模型共用同一套 OpenAI 兼容接口:
+
+> **Anthropic** · **OpenAI** · **Google** · **Qwen** · **BytePlus(豆包)** · **DeepSeek** · **GLM** · **MiniMax** · **MoonShot(Kimi)**
+
+---
+
+## 模型分类
+
+### 🎭 Anthropic Claude 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **Claude Opus 4.7** ⭐ | claude-opus-4-7 | 1M | Anthropic 最新旗舰,代码与代理能力进一步突破 | 复杂推理、生产代码、复杂代理 |
+| **Claude Opus 4.6** | claude-opus-4-6 | 1M | Anthropic 旗舰智能模型,为生产代码、复杂代理设定标准 | 对话、推理、代码、文案 |
+| **Claude Sonnet 4.6** | claude-sonnet-4-6 | 1M | Sonnet 最新主力,综合能力强 | 对话、思考、文案、代码 |
+| **Claude Sonnet 4.5** | claude-sonnet-4-5-20250929 | 200K | 工具处理、内存管理、上下文处理增强 | 对话、思考、文案、代码 |
+| **Claude Haiku 4.5** | claude-haiku-4-5-20251001 | 200K | Anthropic 效率最高的模型,接近前沿的快速版本 | 高并发对话、轻量任务 |
+| **Claude Opus 4.5** | claude-opus-4-5-20251101 | 200K | 旗舰前代版本,稳定可靠 | 对话、思考、文案、代码 |
+
+### 🤖 OpenAI 系列
+
+#### GPT 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **GPT-5.5** ⭐ | gpt-5.5 | 1M | OpenAI 最新主力,推理与综合能力进一步增强 | 对话、思考、代码、文案 |
+| **GPT 5.4** | gpt-5.4 | 1M | 面向复杂专业任务的新一代主力模型 | 对话、思考、代码、文案 |
+| **GPT 5.4 Pro** | gpt-5.4-pro | 1M | 高性能版本,适合高复杂度推理与工程任务 | 对话、思考、代码 |
+| **GPT 5.4 Mini** | gpt-5.4-mini | 1M | 平衡性能与成本的通用版本 | 对话、文案、代码 |
+| **GPT 5.4 Nano** | gpt-5.4-nano | 1M | 轻量低成本版本,适合高并发场景 | 对话、文案 |
+| **GPT 5.3 Chat** | gpt-5.3-chat | 400K | 稳定的通用对话模型 | 对话、文案 |
+
+#### 图像生成模型
+
+| 模型名称 | 模型ID | 特点 |
+|---------|--------|------|
+| **GPT-Image-2** ⭐ | gpt-image-2 | OpenAI 新一代图像生成模型 |
+
+### 🌟 Google Gemini 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **Gemini 3.5 Flash** ⭐ | gemini-3.5-flash | 1M | Gemini 最新快速版本,高吞吐低延迟 | 工具调用、高并发对话 |
+| **Gemini 3.1 Pro Preview** | gemini-3.1-pro-preview | 1M | Google 新一代核心智能模型,适合复杂问题求解 | 对话、思考、文案、代码 |
+| **Gemini 3.1 Flash Lite Preview** | gemini-3.1-flash-lite-preview | 1M | 高性价比快速版本,适合高并发调用 | 对话、文案 |
+| **Gemini 3.1 Flash Image Preview** | gemini-3.1-flash-image-preview | 1M | 面向图像理解与生成增强的多模态版本 | 图像理解、文生图 |
+| **Gemini 3 Pro Image Preview** | gemini-3-pro-image-preview | 1M | Gemini 图像能力强化版本 | 文生图、图片生成 |
+| **Gemini 3 Flash Preview** | gemini-3-flash-preview | 1M | 快速响应版本,适合多轮对话与工具调用 | 对话、文案、代码 |
+
+### 🐉 阿里通义千问 (Qwen) 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **Qwen3.5 Plus** ⭐ | qwen3.5-plus | 见控制台 | 通义千问最新通用模型,综合能力强 | 对话、思考、文案、代码 |
+| **Qwen3.5 Flash** | qwen3.5-flash | 见控制台 | 快速低成本版本,适合高并发场景 | 对话、文案 |
+| **Qwen3 Max** | qwen3-max | 见控制台 | 高性能版本,适合复杂推理与生成 | 对话、思考、代码 |
+| **Qwen3 Coder Plus** | qwen3-coder-plus | 1M | 基于 Qwen3 的代码生成模型,强大的 Coding Agent 能力 | 代码、工具调用 |
+| **Qwen Image Plus** | qwen-image-plus | 32K | 通义千问图像生成模型,文本渲染能力优秀 | 文生图、图片生成 |
+
+### 🌋 BytePlus 豆包 (Doubao) Seed 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **豆包 Seed 2.0 Pro** ⭐ | doubao-seed-2-0-pro-260215 | 见控制台 | 豆包最新主力模型,综合能力更强 | 对话、思考、代码 |
+| **豆包 Seed 2.0 Code Preview** | doubao-seed-2-0-code-preview-260215 | 见控制台 | 面向代码任务优化的预览版本 | 代码、工具调用 |
+| **豆包 Seed 2.0 Lite** | doubao-seed-2-0-lite-260215 | 见控制台 | 轻量版本,适合成本敏感场景 | 对话、文案 |
+| **豆包 Seed 2.0 Mini** | doubao-seed-2-0-mini-260215 | 见控制台 | 小型快速版本,低延迟 | 对话、快速响应 |
+| **豆包 Seed 1.8** | doubao-seed-1-8-251228 | 见控制台 | 稳定通用版本 | 对话、文案 |
+
+### 🔍 DeepSeek 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **DeepSeek V3.2 251201** ⭐ | deepseek-v3-2-251201 | 128K | DeepSeek 最新混合推理版本,综合能力更强 | 对话、思考、文案、代码 |
+| **DeepSeek V3 250324** | deepseek-v3-250324 | 128K | 稳定通用模型,性价比高 | 通用场景 |
+| **DeepSeek R1 250528** | deepseek-r1-250528 | 64K | 推理模型,适合数学与逻辑任务 | 数学、推理 |
+
+### 💎 智谱 AI (GLM) 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **glm-5** | glm-5 | 见控制台 | 智谱最新对话模型 | 对话、文案、代码 |
+| **glm-4.7** | glm-4.7 | 200K | 智谱旗舰,具备更强的编程能力与稳定多步推理,总参数 355B | 对话、长程任务、编码、工具协同 |
+
+### ✨ MiniMax 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **MiniMax M2** ⭐ | minimax-m2 | 见控制台 | MiniMax 最新主力模型,综合表现优秀 | 对话、思考、文案、代码 |
+| **MiniMax Text-01** | minimax-text-01 | 见控制台 | 长上下文 MoE 模型,适合复杂任务 | 长文本、复杂推理 |
+| **abab6.5s** | abab6.5s | 见控制台 | 高性价比对话模型 | 高并发对话、文案 |
+
+<Tip>
+MiniMax 完整模型列表与实时价格以 [TenndaAI 模型广场](https://client.tennda.ai/#/api-models) 为准。
+</Tip>
+
+### 🌙 Moonshot Kimi 系列
+
+| 模型名称 | 模型ID | 上下文长度 | 特点 | 推荐场景 |
+|---------|--------|-----------|------|---------|
+| **kimi-k2.5** ⭐ | kimi-k2.5 | 256K | 月之暗面迄今最全能的模型,原生多模态架构,支持视觉与文本输入、思考与非思考模式 | 对话、思考 |
+| **Kimi K2 250905** | kimi-k2-250905 | 256K | 具备超强代码和 Agent 能力的 MoE 模型,总参数 1T,激活参数 32B | 对话、思考、文案、代码 |
+
+## 🎯 平台能力
+
+<Columns cols={2}>
+  <Card title="One API for any model" icon="plug">
+    完全兼容 OpenAI SDK,切换 provider 无需改一行代码
+  </Card>
+  <Card title="Higher availability" icon="shield">
+    分布式基础设施,自动故障转移,模型不可用时自动路由到备份
+  </Card>
+  <Card title="Price & performance" icon="bolt">
+    边缘基础设施降低延迟,透明 token 级计费,按量付费
+  </Card>
+  <Card title="Custom data policies" icon="lock">
+    精细化隐私控制,自定义可访问数据的供应商范围
+  </Card>
+</Columns>
+
+## 💰 定价说明
+
+### 计费方式
+
+- **按量计费**:根据实际使用的 Token 数量计费
+- **无最低消费**:充多少用多少,余额永不过期
+- **实时扣费**:每次调用后立即从余额扣除费用
+
+### 价格优势
+
+- 官方源头转发,价格较直连具备优势
+- 批量使用可联系商务获取专属价格
+
+## 🛠️ 使用建议
+
+### 模型选择指南
+
+<Tabs>
+  <Tab title="编程开发">
+    - **顶级性能**:Claude Opus 4.7、Claude Opus 4.6、GPT-5.5、Claude Sonnet 4.6
+    - **高性价比**:Claude Haiku 4.5、GPT 5.4 Mini、DeepSeek V3.2、glm-5
+    - **备选**:Gemini 3.5 Flash、Qwen3 Coder Plus、kimi-k2.5、doubao-seed-2-0-code-preview-260215
+  </Tab>
+  <Tab title="文本创作">
+    - **首选**:GPT-5.5、Claude Opus 4.7、Claude Sonnet 4.6、glm-5
+    - **备选**:Gemini 3.5 Flash、kimi-k2.5、MiniMax M2、doubao-seed-2-0-pro-260215
+  </Tab>
+  <Tab title="快速响应">
+    - **首选**:Claude Haiku 4.5、Gemini 3.5 Flash、Gemini 3.1 Flash Lite Preview
+    - **备选**:glm-5、GPT 5.4 Nano、doubao-seed-2-0-lite-260215、abab6.5s
+  </Tab>
+  <Tab title="图像生成">
+    - **推荐**:GPT-Image-2、Qwen Image Plus、Gemini 3.1 Flash Image Preview
+  </Tab>
+  <Tab title="长文本处理">
+    - **超长上下文**:Gemini 3.5 Flash(1M)、Claude Opus 4.7(1M)、GPT-5.5(1M)
+    - **编程场景**:Claude 4.x 系列、kimi-k2.5、Qwen3 Coder Plus
+  </Tab>
+</Tabs>
+
+### 成本优化建议
+
+1. **分级使用**:简单任务用便宜模型,复杂任务用旗舰模型
+2. **测试优化**:先用小模型测试,确定需求后再用大模型
+3. **批量处理**:大量相似任务可以选择 Mini / Lite 版本
+4. **缓存复用**:对重复查询结果进行缓存
+
+## 🔗 相关资源
+
+<Columns cols={2}>
+  <Card title="API 文档" icon="book" href="/cn/api-reference/openai-sdk">
+    OpenAI SDK 调用示例与详细接口说明
+  </Card>
+  <Card title="快速开始" icon="rocket" href="/cn/quickstart">
+    三步获取 API Key 并发起首个请求
+  </Card>
+</Columns>
+
+<Tip>
+模型列表持续更新中。如需特定模型或批量需求,请发送邮件至 [bd@tennda.ai](mailto:bd@tennda.ai),或前往 [TenndaAI 模型广场](https://client.tennda.ai/#/api-models) 查看最新列表。
+</Tip>

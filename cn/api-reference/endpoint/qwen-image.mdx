@@ -1,0 +1,97 @@
+---
+title: '通义千问（图像）'
+description: '百炼 Qwen Image 文生图与图像编辑'
+api: 'POST https://api.tennda.ai/v1/images/generations'
+---
+
+## 简介
+
+通义千问图像系列（百炼 Qwen Image）支持中文场景文生图与多图编辑。通过 OpenAI 兼容接口调用：
+
+- **文生图**：`POST /v1/images/generations`，模型 `qwen-image-plus`
+- **图像编辑**：`POST /v1/images/edits`，模型 `qwen-image-edit-plus`
+
+完整参数与多模型对比请参见 [图片生成](/cn/api-reference/endpoint/image-generation)。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型
+
+| 模型 ID | 说明 | 端点 |
+|---------|------|------|
+| `qwen-image-plus` | 文生图 | `/v1/images/generations` |
+| `qwen-image-edit-plus` | 图生图 / 图像编辑（1–3 张输入图） | `/v1/images/edits` |
+
+## 请求示例
+
+<Tabs>
+  <Tab title="文生图">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-plus",
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {"text": "一副典雅庄重的对联悬挂于中式厅堂，横批「智启通义」，水墨风格"}
+              ]
+            }
+          ]
+        },
+        "parameters": {
+          "prompt_extend": true,
+          "watermark": false
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="图像编辑">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-edit-plus",
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {"image": "https://example.com/reference.webp"},
+                {"text": "生成符合参考图的图像：红色自行车停在泥泞小路，背景为原始森林"}
+              ]
+            }
+          ]
+        },
+        "parameters": {
+          "n": 2,
+          "size": "2048*2048",
+          "prompt_extend": true,
+          "watermark": false
+        }
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+- **input.messages**：Qwen 消息结构，`content` 中为 `text` 和/或 `image`  
+- **parameters.prompt_extend**：是否扩展提示词（编辑系列建议短 prompt 开启、长 prompt 关闭）  
+- **parameters.n**：输出张数；`qwen-image-edit-plus` 支持 1–6 张  
+- **parameters.size**：输出尺寸，如 `2048*2048`  
+- **response_format**：支持 `url` 或 `b64_json`  
+
+<Note>
+  `qwen-image-plus` 仅文生图，不支持参考图输入。多图编辑请使用 `qwen-image-edit-plus` 并走 `/v1/images/edits`。
+</Note>
+
+更多说明见 [图片生成](/cn/api-reference/endpoint/image-generation) 与 [图像编辑](/cn/api-reference/endpoint/image-edits)。

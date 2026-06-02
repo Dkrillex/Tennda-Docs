@@ -1,0 +1,187 @@
+---
+title: 'Quick Start'
+description: 'Get started with TenndaAI in just three simple steps'
+---
+
+## Step 1: Account Setup
+
+### 1.1 Get Your Account
+
+<Note>
+TenndaAI **does not offer public registration**. To use our services, please contact our BD (Business Development) team to provision your account.
+</Note>
+
+Reach out to our BD team through one of the following channels:
+
+<CardGroup cols={2}>
+  <Card title="Call BD" icon="phone" href="tel:+8615113062111">
+    Call us at: **+86 151 1306 2111**
+  </Card>
+  <Card title="Email BD" icon="envelope" href="mailto:bd@tennda.ai">
+    Send an email to bd@tennda.ai
+  </Card>
+</CardGroup>
+
+Once your account is provisioned, you'll receive login credentials to access the [TenndaAI Console](https://client.tennda.ai).
+
+### 1.2 Add Credits
+
+Log in to the console to top up:
+1. Click "Personal Center"
+2. Click "Billing Recharge" to pay (Alipay, WeChat supported)
+
+For invoices or bank transfers, please contact your BD for assistance.
+
+## Step 2: Create API Key
+
+### 2.1 Generate Key
+
+1. Click "Model Center" in the navigation
+2. Click "API Keys"
+3. Click "Create New" to generate a key
+
+
+## Step 3: Start Calling
+
+### 3.1 Connection Info
+
+| Config | Value |
+|--------|-------|
+| **API URL (Base URL)** | `https://api.tennda.ai/v1` |
+| **API Key** | Your created key |
+| **Request Format** | Fully OpenAI API compatible |
+
+### 3.2 Test Call
+
+Quick test with curl:
+
+```bash
+curl https://api.tennda.ai/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "model": "gpt-5.4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### 3.3 Code Examples
+
+<Tabs>
+  <Tab title="Python">
+    ```python
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key="YOUR_API_KEY",
+        base_url="https://api.tennda.ai/v1"
+    )
+
+    response = client.chat.completions.create(
+        model="gpt-5.4",
+        messages=[
+            {"role": "user", "content": "Hello!"}
+        ]
+    )
+
+    print(response.choices[0].message.content)
+    ```
+  </Tab>
+  <Tab title="Node.js">
+    ```javascript
+    import OpenAI from 'openai';
+
+    const openai = new OpenAI({
+      apiKey: 'YOUR_API_KEY',
+      baseURL: 'https://api.tennda.ai/v1'
+    });
+
+    const response = await openai.chat.completions.create({
+      model: 'gpt-5.4',
+      messages: [{ role: 'user', content: 'Hello!' }]
+    });
+
+    console.log(response.choices[0].message.content);
+    ```
+  </Tab>
+  <Tab title="Java">
+    ```java
+    OpenAiService service = new OpenAiService(
+        "YOUR_API_KEY", 
+        Duration.ofSeconds(60), 
+        "https://api.tennda.ai/v1"
+    );
+
+    ChatCompletionRequest request = ChatCompletionRequest.builder()
+        .model("gpt-5.4")
+        .messages(List.of(
+            new ChatMessage(ChatMessageRole.USER, "Hello!")
+        ))
+        .build();
+
+    ChatCompletionResult result = service.createChatCompletion(request);
+    System.out.println(result.getChoices().get(0).getMessage().getContent());
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+Congratulations! You've successfully set up TenndaAI. Next you can:
+
+<Columns cols={2}>
+  <Card title="View API Docs" icon="book" href="/en/api-reference/introduction">
+    Learn about complete API specifications
+  </Card>
+  <Card title="Integrate with Apps" icon="puzzle-piece" href="/en/integrations/cursor">
+    Integrate TenndaAI with various tools
+  </Card>
+</Columns>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How to switch models?">
+    Just change the `model` parameter in your request:
+    ```json
+    {
+      "model": "gpt-5.4",
+      "model": "claude-sonnet-4-6",
+      "model": "gemini-3.1-pro-preview"
+    }
+    ```
+  </Accordion>
+  <Accordion title="Which programming languages are supported?">
+    TenndaAI is OpenAI API compatible, supporting all OpenAI SDK languages:
+    - Python
+    - JavaScript/TypeScript
+    - Java
+    - C#/.NET
+    - Go
+    - Ruby
+    - PHP
+  </Accordion>
+  <Accordion title="How to check balance?">
+    Log in to the console to view:
+    - Account balance
+    - Usage history
+    - Consumption statistics
+</Accordion>
+  <Accordion title="How do I get an account?">
+    TenndaAI does not offer public registration. All accounts are provisioned by our BD team. Once onboarded, you'll enjoy:
+    - Dedicated one-on-one BD support
+    - Customized model plans and quota allocation
+    - Faster technical support and issue resolution
+
+    To get started, please email bd@tennda.ai or call us at +86 151 1306 2111.
+  </Accordion>
+  <Accordion title="Having issues?">
+    1. Check API documentation
+    2. Review common errors
+    3. Contact support: bd@tennda.ai
+  </Accordion>
+</AccordionGroup>
+
+<Tip>
+Save your API key safely and regularly check usage logs in the console to optimize costs. Happy coding~
+</Tip>

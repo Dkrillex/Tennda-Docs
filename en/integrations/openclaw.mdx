@@ -1,0 +1,283 @@
+---
+title: 'OpenClaw'
+description: 'OpenClaw open-source local AI assistant integration guide (TenndaAI)'
+---
+
+## 1. Overview
+
+**OpenClaw** is an open-source (MIT licensed) local AI assistant that runs on your own machine. It interacts through messaging platforms like Telegram, WhatsApp, Discord, Slack and iMessage, and performs real automation: **file operations, terminal commands, browser control, scheduled tasks** and more.
+
+With **TenndaAI** (OpenAI-compatible API), one API key gives OpenClaw access to 400+ leading models including GPT, Claude, Gemini and DeepSeek.
+
+<CardGroup cols={2}>
+  <Card title="Local & Private" icon="shield">
+    All data stays on your machine
+  </Card>
+  <Card title="Multi-platform" icon="message-circle">
+    Telegram / WhatsApp / Discord / Slack / iMessage
+  </Card>
+  <Card title="Autonomous" icon="wand-magic-sparkles">
+    Beyond chat — actually operates your computer
+  </Card>
+  <Card title="Extensible" icon="puzzle-piece">
+    Custom skills and plugins
+  </Card>
+</CardGroup>
+
+<Info>
+Website: `openclaw.ai` ｜ Repo: `github.com/openclaw/openclaw` ｜ License: MIT
+</Info>
+
+## 2. Prerequisites
+
+- Create an API key in the [TenndaAI console](https://client.tennda.ai/#/keys)
+- Node.js 22 or higher
+- macOS / Linux / Windows
+
+## 3. Install OpenClaw
+
+### 3.1 Install Node.js
+
+<CodeGroup>
+```bash macOS (Homebrew)
+brew install node@22
+```
+
+```bash Linux (nvm)
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+nvm install 22
+nvm use 22
+```
+
+```powershell Windows (fnm)
+winget install Schniz.fnm
+fnm install 22
+fnm use 22
+```
+</CodeGroup>
+
+### 3.2 Install OpenClaw
+
+<CodeGroup>
+```bash npm (recommended)
+npm install -g openclaw
+```
+
+```bash One-line (macOS/Linux)
+curl -fsSL https://openclaw.ai/install.sh | bash
+```
+
+```powershell Windows PowerShell
+irm https://openclaw.ai/install.ps1 | iex
+```
+</CodeGroup>
+
+### 3.3 Verify
+
+```bash
+openclaw --version
+openclaw doctor
+```
+
+If `openclaw doctor` reports issues, run `openclaw doctor --fix`.
+
+## 4. Configure TenndaAI
+
+OpenClaw stores its config at `~/.openclaw/openclaw.json`.
+
+### Option A — Edit the JSON file (recommended)
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "tennda/claude-sonnet-4-6" }
+    }
+  },
+  "models": {
+    "providers": {
+      "tennda": {
+        "baseUrl": "https://api.tennda.ai/v1",
+        "apiKey": "sk-your-tenndai-key",
+        "api": "openai-completions",
+        "models": [
+          { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6" },
+          { "id": "openai/gpt-5.4", "name": "GPT-5.4" },
+          { "id": "deepseek-v3-2-251201", "name": "DeepSeek V3.2" },
+          { "id": "gemini-3.1-pro-preview", "name": "Gemini 3.1 Pro" }
+        ]
+      }
+    }
+  }
+}
+```
+
+<Tip>
+- `baseUrl` must end with `/v1`
+- GPT models require the `openai/` prefix, e.g. `openai/gpt-5.4`
+- Use `openai-completions` for OpenAI-compatible mode, or `anthropic-messages` for the native Claude API
+</Tip>
+
+### Option B — CLI wizard
+
+```bash
+openclaw onboard
+```
+
+| Field | Value |
+|-------|-------|
+| Provider name | `tennda` |
+| API type | `openai-completions` |
+| Base URL | `https://api.tennda.ai/v1` |
+| API key | Your TenndaAI key |
+| Default model | `claude-sonnet-4-6` or `openai/gpt-5.4` |
+
+### Option C — Anthropic native mode
+
+For the best Claude tool-calling experience:
+
+```json
+{
+  "agents": {
+    "defaults": {
+      "model": { "primary": "tennda/claude-sonnet-4-6" }
+    }
+  },
+  "models": {
+    "providers": {
+      "tennda": {
+        "baseUrl": "https://api.tennda.ai",
+        "apiKey": "sk-your-tenndai-key",
+        "api": "anthropic-messages",
+        "models": [
+          { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6" },
+          { "id": "claude-haiku-4-5-20251001", "name": "Claude Haiku 4.5" }
+        ]
+      }
+    }
+  }
+}
+```
+
+After editing, restart the gateway:
+
+```bash
+openclaw gateway restart
+```
+
+## 5. Run It
+
+### Web UI (recommended)
+
+```bash
+openclaw dashboard
+```
+
+Open `http://127.0.0.1:18789/` in your browser.
+
+### Telegram Bot
+
+1. Talk to `@BotFather` on Telegram, send `/newbot`
+2. Copy the Bot Token into `openclaw onboard`
+3. If you are behind a firewall, set a proxy first:
+
+```bash
+export https_proxy=http://127.0.0.1:PORT
+export http_proxy=http://127.0.0.1:PORT
+openclaw gateway restart
+```
+
+### Other channels
+
+WhatsApp (QR), Discord, Slack, Signal, iMessage, Microsoft Teams and more.
+
+## 6. Recommended Models
+
+| Use case | Model ID | Notes |
+|----------|----------|-------|
+| Complex tasks | `claude-sonnet-4-6` | Best tool calling & reasoning |
+| Daily chat | `gpt-5.5` | Natural, general purpose |
+| Coding | `deepseek-v3-2-251201` | Strong code, great price |
+| Long context | `gemini-3.1-pro-preview` | Huge context window |
+| Fast & cheap | `claude-haiku-4-5-20251001` | Latency-optimised |
+| Heavy reasoning | `claude-opus-4-7` | Complex reasoning, algorithms / logic |
+
+Browse the full list at the [TenndaAI model marketplace](https://client.tennda.ai/#/models).
+
+## 7. Built-in Skills
+
+### File & System
+
+| Skill | Purpose |
+|-------|---------|
+| `fs.read` / `fs.write` / `fs.edit` | Read / write / edit files |
+| `shell.exec` | Run terminal commands |
+| `shell.process` | Manage running processes |
+| `browser.*` | Drive a browser (open, click, screenshot) |
+
+### Intelligence
+
+| Skill | Purpose |
+|-------|---------|
+| `web_search` / `web_fetch` | Web search & page fetch |
+| `memory_search` / `memory_get` | Long-term memory |
+| `cron.*` | Reminders & scheduled jobs |
+| `tts` | Text-to-speech |
+
+## 8. Commands
+
+### Terminal
+
+| Command | Purpose |
+|---------|---------|
+| `openclaw onboard` | Setup wizard |
+| `openclaw gateway start/stop/restart` | Control the gateway |
+| `openclaw status` | Show running state |
+| `openclaw doctor [--fix]` | Diagnose / auto-fix |
+| `openclaw dashboard` | Open the web UI |
+| `openclaw logs --follow` | Tail logs |
+| `openclaw configure` | Edit config |
+| `openclaw update` | Update to latest |
+
+### Chat
+
+| Command | Purpose |
+|---------|---------|
+| `/help` | Show help |
+| `/new` / `/reset` | New / reset conversation |
+| `/stop` | Cancel current task |
+| `/model <name>` | Switch model |
+| `/think <level>` | Reasoning depth |
+| `/verbose on/off` | Toggle verbose mode |
+| `/skills` | List skills |
+
+## 9. Examples
+
+```text
+> Create test.txt on my Desktop with the text "hello TenndaAI"
+> List every file on my Desktop
+> Open client.tennda.ai in the browser and screenshot the page
+> Remind me to drink water every day at 9:00
+> Write a Python script that batch-renames every image in ~/Pictures
+```
+
+## 10. Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 / invalid API key">
+    - Re-copy the key from the [TenndaAI console](https://client.tennda.ai/#/keys), watch out for stray spaces
+    - Make sure `apiKey` in the JSON file has no quotes or full-width characters
+  </Accordion>
+  <Accordion title="404 / wrong endpoint">
+    - `openai-completions` mode: `baseUrl` must end with `/v1`
+    - `anthropic-messages` mode: `baseUrl` should be `https://api.tennda.ai` (no `/v1`)
+  </Accordion>
+  <Accordion title="Model not found">
+    - Verify the model ID at the [model marketplace](https://client.tennda.ai/#/models)
+    - GPT models need the `openai/` prefix
+  </Accordion>
+  <Accordion title="Config changes have no effect">
+    - Restart with `openclaw gateway restart` after editing the file
+    - Run `openclaw doctor` to inspect the active config
+  </Accordion>
+</AccordionGroup>

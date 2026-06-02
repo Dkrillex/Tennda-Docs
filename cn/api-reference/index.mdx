@@ -1,0 +1,93 @@
+---
+title: 'API 参考'
+description: 'Tennda API 完整接口文档'
+---
+
+## 概述
+
+Tennda API 提供完整的 RESTful 接口，兼容 OpenAI API 格式。通过统一网关 `https://api.tennda.ai`，可调用对话、补全、嵌入、图像、视频、音频等 AI 能力。
+
+## AI 模型接口
+
+<CardGroup cols={3}>
+  <Card title="模型列表" icon="list" href="/cn/api-reference/endpoint/list-models">
+    获取可用的模型列表
+  </Card>
+  <Card title="聊天" icon="comments" href="/cn/api-reference/endpoint/chat-openai">
+    OpenAI 兼容对话补全（Chat Completions）
+  </Card>
+  <Card title="Claude 消息" icon="message" href="/cn/api-reference/endpoint/messages">
+    Anthropic Claude Messages 原生格式
+  </Card>
+  <Card title="Responses" icon="reply" href="/cn/api-reference/endpoint/responses-openai">
+    OpenAI Responses API
+  </Card>
+  <Card title="补全" icon="file-lines" href="/cn/api-reference/endpoint/completions">
+    传统文本补全（Completions）
+  </Card>
+  <Card title="嵌入" icon="database" href="/cn/api-reference/endpoint/embeddings/create-embedding">
+    文本嵌入向量（OpenAI / Engines 格式）
+  </Card>
+  <Card title="重排序" icon="magnifying-glass" href="/cn/api-reference/endpoint/rerank">
+    文档相关性重排序（Rerank）
+  </Card>
+  <Card title="审查" icon="shield-check" href="/cn/api-reference/endpoint/moderations">
+    内容安全审核（Moderations）
+  </Card>
+  <Card title="音频" icon="headphones" href="/cn/api-reference/endpoint/audio">
+    OpenAI 语音合成/转录与 Gemini 原生 TTS
+  </Card>
+  <Card title="实时语音" icon="tower-broadcast" href="/cn/api-reference/endpoint/realtime">
+    实时音频流（WebSocket）
+  </Card>
+  <Card title="图像" icon="image" href="/cn/api-reference/endpoint/image-generation">
+    统一图像生成接口
+  </Card>
+  <Card title="Nano Banana" icon="image" href="/cn/api-reference/endpoint/nano-banana">
+    Gemini 图像（OpenAI 兼容 /images/generations）
+  </Card>
+  <Card title="Gemini 原生（图像）" icon="image" href="/cn/api-reference/endpoint/gemini-image">
+    generateContent / Chat 图像输出
+  </Card>
+  <Card title="GPT-Image-2" icon="image" href="/cn/api-reference/endpoint/gpt-image-2">
+    OpenAI GPT-Image-2 文生图 / 图生图
+  </Card>
+  <Card title="通义千问（图像）" icon="image" href="/cn/api-reference/endpoint/qwen-image">
+    Qwen Image 文生图与图像编辑
+  </Card>
+  <Card title="图像编辑" icon="pen" href="/cn/api-reference/endpoint/image-edits">
+    POST /v1/images/edits
+  </Card>
+  <Card title="视频总览" icon="video" href="/cn/api-reference/endpoint/video-generation">
+    多模型视频生成总览与参数对照
+  </Card>
+  <Card title="提交/查询视频" icon="video" href="/cn/api-reference/endpoint/submit-video-task">
+    统一接口 POST /v1/video/generations
+  </Card>
+  <Card title="万相 2.7" icon="video" href="/cn/api-reference/endpoint/wan2.7">
+    阿里万相 2.7 文生 / 图生 / 参考生视频
+  </Card>
+  <Card title="Veo" icon="video" href="/cn/api-reference/endpoint/veo">
+    Google Veo 视频生成
+  </Card>
+  <Card title="Seedance 2.0" icon="video" href="/cn/api-reference/endpoint/seedance-2.0">
+    豆包 Seedance 2.0 与素材库（asset://）
+  </Card>
+</CardGroup>
+
+## 通用说明
+
+<Columns cols={2}>
+  <Card title="支持的模型" icon="cube" href="/cn/api-reference/models">
+    模型矩阵与选型建议
+  </Card>
+  <Card title="OpenAI SDK" icon="code" href="/cn/api-reference/openai-sdk">
+    多语言 SDK 调用示例
+  </Card>
+  <Card title="查询视频任务" icon="search" href="/cn/api-reference/endpoint/query-video-task">
+    轮询视频任务状态
+  </Card>
+  <Card title="下载视频" icon="download" href="/cn/api-reference/endpoint/download-video">
+    下载视频文件（Sora 2）
+  </Card>
+</Columns>

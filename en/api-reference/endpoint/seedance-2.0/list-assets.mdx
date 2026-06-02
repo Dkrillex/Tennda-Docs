@@ -1,0 +1,29 @@
+---
+title: 'List assets'
+description: 'GET /v1/assets'
+api: 'GET https://api.tennda.ai/v1/assets'
+---
+
+## Introduction
+
+List assets, optionally filtered by group.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Query parameters
+
+<ParamField query="group_id" type="string">
+  Filter by group ID
+</ParamField>
+
+## Example
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/assets?group_id=group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

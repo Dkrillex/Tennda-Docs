@@ -1,0 +1,81 @@
+---
+title: 'Qwen Image'
+description: 'Alibaba Qwen Image text-to-image and editing'
+api: 'POST https://api.tennda.ai/v1/images/generations'
+---
+
+## Introduction
+
+Qwen Image models support Chinese-centric text-to-image and multi-image editing via OpenAI-compatible endpoints:
+
+- **Text-to-image**: `POST /v1/images/generations`, model `qwen-image-plus`
+- **Image editing**: `POST /v1/images/edits`, model `qwen-image-edit-plus`
+
+See [Image generation](/en/api-reference/endpoint/image-generation) for full parameters.
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Supported models
+
+| Model ID | Description | Endpoint |
+|----------|-------------|----------|
+| `qwen-image-plus` | Text-to-image | `/v1/images/generations` |
+| `qwen-image-edit-plus` | Edit / I2I (1–3 input images) | `/v1/images/edits` |
+
+## Request examples
+
+<Tabs>
+  <Tab title="Text-to-image">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/generations" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-plus",
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [{"text": "An elegant Chinese hall with calligraphy scrolls, ink wash style"}]
+            }
+          ]
+        },
+        "parameters": {"prompt_extend": true}
+      }'
+    ```
+  </Tab>
+  <Tab title="Image editing">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-edit-plus",
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {"image": "https://example.com/reference.webp"},
+                {"text": "Generate an image: red bicycle on a muddy path in a forest"}
+              ]
+            }
+          ]
+        },
+        "parameters": {"n": 2, "size": "2048*2048"}
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Common parameters
+
+- **input.messages**: Qwen message format with `text` / `image` in `content`  
+- **parameters.n**: Output count; `qwen-image-edit-plus` supports 1–6  
+- **response_format**: `url` or `b64_json`  
+
+See [Image generation](/en/api-reference/endpoint/image-generation) and [Image edits](/en/api-reference/endpoint/image-edits).

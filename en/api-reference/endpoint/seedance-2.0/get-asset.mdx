@@ -1,0 +1,37 @@
+---
+title: 'Get asset'
+description: 'GET /v1/assets/{virtual_id}'
+api: 'GET https://api.tennda.ai/v1/assets/{virtual_id}'
+---
+
+## Introduction
+
+Get one asset and processing status. Confirm `status: active` before video generation.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="virtual_id" type="string" required>
+  Virtual asset ID (e.g. `asset-xxx`)
+</ParamField>
+
+## Example
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## Status
+
+| status | Meaning |
+|--------|---------|
+| `processing` | Keep polling |
+| `active` | Ready for `asset://` |
+| `failed` | Processing failed |

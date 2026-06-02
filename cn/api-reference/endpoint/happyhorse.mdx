@@ -1,0 +1,304 @@
+---
+title: 'HappyHorse 视频生成'
+description: '阿里 HappyHorse 文生视频、图生视频、参考生视频'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## 简介
+
+HappyHorse（快马）是阿里云百炼推出的视频生成系列，由文生视频（HappyHorse-T2V）、图生视频（HappyHorse-I2V）与参考生视频（HappyHorse-R2V）组成，主打物理真实、运动流畅的高质量视频输出。全系列支持 **720P** 与 **1080P** 输出，时长 **3–15 秒**。
+
+通过 TenndaAI 统一视频接口调用：先 [提交视频任务](/cn/api-reference/endpoint/submit-video-task) 获取 `task_id`，再 [查询视频任务](/cn/api-reference/endpoint/query-video-task) 轮询状态并获取 `url`。
+
+<Note>
+  HappyHorse 的请求体通过 `metadata.input` 与 `metadata.parameters` 传递底层 DashScope 参数，与万相 2.7 结构相同。参考生视频在 prompt 中使用 **`[Image 1]`、`[Image 2]`** 指代参考图（英文方括号格式），且仅支持图片参考，不支持视频参考。
+</Note>
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 支持的模型
+
+| 模型 ID | 说明 | 支持分辨率 | 最大时长 | 特点 |
+|---------|------|-----------|---------|------|
+| `happyhorse-1.0-t2v` | 文生视频 | 720P、1080P | 15 秒 | 文本语义理解、多宽高比 |
+| `happyhorse-1.0-i2v` | 图生视频（首帧） | 720P、1080P | 15 秒 | 首帧驱动，画幅跟随输入图 |
+| `happyhorse-1.0-r2v` | 参考生视频 | 720P、1080P | 15 秒 | 最多 9 张参考图，主体融合 |
+
+## 调用流程
+
+1. **提交任务**：`POST /v1/video/generations`，传入 `model`、`prompt`、`duration` 及 `metadata` 中的 HappyHorse 参数。
+2. **轮询状态**：`GET /v1/video/generations/{task_id}`，建议每 3–15 秒查询一次，直到 `status` 为 `succeeded` 或 `failed`。
+3. **获取结果**：成功时响应中的 `url` 为视频地址（有效期通常为 24 小时，请及时下载转存）。
+
+## 通用请求结构
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `model` | string | 是 | 模型 ID，见上表 |
+| `prompt` | string | 视场景 | 视频生成提示词（与 `metadata.input.prompt` 一致） |
+| `duration` | integer | 否 | 视频时长（秒），与 `metadata.parameters.duration` 保持一致 |
+| `metadata.input` | object | 是 | 输入：`prompt`、`media` 等 |
+| `metadata.parameters` | object | 否 | 处理参数：`resolution`、`ratio`、`duration`、`watermark`、`seed` 等 |
+
+### 提交成功响应
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "submitted",
+  "format": "mp4"
+}
+```
+
+### 查询成功响应
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "succeeded",
+  "format": "mp4",
+  "url": "https://tennda-ads.oss-cn-guangzhou.aliyuncs.com/2025/11/18/abc123/video.mp4"
+}
+```
+
+## 使用场景
+
+<Tabs>
+  <Tab title="文生视频 (T2V)">
+基于文本提示词生成物理真实、运动流畅的视频。
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  文本提示词，描述期望生成的视频内容
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` 或 `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  宽高比：`16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`4:5`、`5:4`、`9:21`、`21:9`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  视频时长（秒），取值范围 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  是否添加水印（右下角固定文案「Happy Horse」）
+</ParamField>
+
+<ParamField body="metadata.parameters.seed" type="integer">
+  随机种子，范围 `[0, 2147483647]`，用于提升可复现性
+</ParamField>
+
+**文生视频示例：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-t2v",
+    "prompt": "一座由硬纸板和瓶盖搭建的微型城市，在夜晚焕发出生机。一列硬纸板火车缓缓驶过，小灯点缀其间，照亮前路。",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "一座由硬纸板和瓶盖搭建的微型城市，在夜晚焕发出生机。一列硬纸板火车缓缓驶过，小灯点缀其间，照亮前路。"
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="图生视频 (I2V)">
+以首帧图片为基础，通过文本描述引导生成视频。画幅自动跟随首帧图像，**不支持** `ratio` 参数。
+
+#### media 类型
+
+| type | 说明 | 数量限制 |
+|------|------|---------|
+| `first_frame` | 首帧图像 | 有且仅有 1 张 |
+
+<ParamField body="metadata.input.prompt" type="string">
+  文本提示词，描述首帧图像如何动起来（可选）
+</ParamField>
+
+<ParamField body="metadata.input.media" type="array" required>
+  媒体列表，包含 1 个 `first_frame` 对象，每项含 `type` 与 `url`
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` 或 `1080P`。模型根据分辨率档位自动缩放，输出宽高比与首帧近似一致
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  视频时长（秒），取值范围 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  是否添加水印
+</ParamField>
+
+**首帧生视频示例：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-i2v",
+    "prompt": "一只猫在草地上奔跑",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "一只猫在草地上奔跑",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/first_frame.png"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="参考生视频 (R2V)">
+支持传入 **1–9 张**参考图像，通过文本提示词描述场景，将图像中的主体角色融合生成流畅视频。在 `prompt` 中使用 **`[Image 1]`、`[Image 2]`** 指代 `media` 数组中对应位置的参考图（顺序一致）。
+
+#### media 类型
+
+| type | 说明 | 数量限制 |
+|------|------|---------|
+| `reference_image` | 参考图像 | 1–9 张 |
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  使用 `[Image n]` 指代参考素材的提示词，需指明参考图中的具体对象，例如「[Image 1] 中身着红色旗袍的女性」
+</ParamField>
+
+<ParamField body="metadata.input.media" type="array" required>
+  参考图像列表，第 1 个元素对应 `[Image 1]`，第 2 个对应 `[Image 2]`，以此类推
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="1080P">
+  `720P` 或 `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  宽高比：`16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`4:5`、`5:4`、`9:21`、`21:9`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  视频时长（秒），取值范围 3–15
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="true">
+  是否添加水印
+</ParamField>
+
+**多参考图示例：**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "happyhorse-1.0-r2v",
+    "prompt": "[Image 1]中身着红色旗袍的女性，镜头先以侧面中景勾勒旗袍修身剪裁与S型曲线，随即切换至低角度仰拍，捕捉她轻抬玉手展开[Image 2]中的折扇的同时，[Image 3]中的流苏耳坠随头部转动轻盈摆动的细节，最后推近至面部特写，定格在她指尖轻点扇骨、眼波流转间的含蓄风情，多视角全方位展现东方韵味。",
+    "duration": 5,
+    "metadata": {
+      "input": {
+        "prompt": "[Image 1]中身着红色旗袍的女性，镜头先以侧面中景勾勒旗袍修身剪裁与S型曲线，随即切换至低角度仰拍，捕捉她轻抬玉手展开[Image 2]中的折扇的同时，[Image 3]中的流苏耳坠随头部转动轻盈摆动的细节，最后推近至面部特写，定格在她指尖轻点扇骨、眼波流转间的含蓄风情，多视角全方位展现东方韵味。",
+        "media": [
+          {"type": "reference_image", "url": "https://example.com/girl.jpg"},
+          {"type": "reference_image", "url": "https://example.com/fan.jpg"},
+          {"type": "reference_image", "url": "https://example.com/earrings.jpg"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 5,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+</Tabs>
+
+## 参数参考
+
+### 通用 parameters
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `duration` | integer | 3–15 秒，默认 `5` |
+| `resolution` | string | `720P` 或 `1080P`，默认 `1080P` |
+| `watermark` | boolean | 是否添加水印，默认 `true` |
+| `seed` | integer | 随机种子，范围 `[0, 2147483647]` |
+
+### 文生视频 & 参考生视频
+
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| `ratio` | string | `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`4:5`、`5:4`、`9:21`、`21:9`，默认 `16:9`。图生视频（i2v）由首帧决定画幅，无需传 `ratio` |
+
+### 媒体输入限制
+
+| 类型 | 格式 | 大小 | 其他限制 |
+|------|------|------|---------|
+| 首帧图像（first_frame） | JPEG、JPG、PNG、WEBP | ≤ 20MB | 宽和高不小于 300 像素 |
+| 参考图像（reference_image） | JPEG、JPG、PNG、WEBP | ≤ 20MB | 短边不低于 400 像素，推荐 720P 以上清晰图；1–9 张 |
+
+## 错误处理
+
+| HTTP 状态码 | 含义 | 建议 |
+|------------|------|------|
+| 400 | 请求参数错误 | 检查 `metadata` 结构与媒体限制 |
+| 401 | 未授权 | 检查 API Key |
+| 429 | 请求过于频繁 | 降低频率后重试 |
+| 502 | 上游服务错误 | 稍后重试 |
+
+任务失败时，`status` 为 `failed`，`error.message` 包含具体原因。
+
+## 常见问题
+
+<AccordionGroup>
+  <Accordion title="生成的视频链接有效期多久？">
+    视频 `url` 与 `task_id` 有效期通常为 **24 小时**。建议获取后立即下载并转存至自有存储。
+  </Accordion>
+  <Accordion title="参考生视频如何指代参考图？">
+    在 prompt 中使用 **`[Image 1]`、`[Image 2]`** 等英文方括号格式，顺序与 `media` 数组中 `reference_image` 的顺序一致。需明确描述参考图中的具体对象。
+  </Accordion>
+  <Accordion title="图生视频支持哪些模式？">
+    HappyHorse 图生视频仅支持 **首帧**（`first_frame`）模式，不支持首尾帧、视频续写或音频驱动。
+  </Accordion>
+  <Accordion title="与万相 2.7 的调用方式有何不同？">
+    结构相同，均使用 `metadata.input` / `metadata.parameters` 与 `media` 数组。主要差异：HappyHorse 参考生视频使用 `[Image n]` 指代且仅支持图片（最多 9 张）；万相 2.7 使用「图n / 视频n」并支持视频参考与音色复刻。HappyHorse 默认分辨率 1080P、默认添加水印，时长范围为 3–15 秒。
+  </Accordion>
+</AccordionGroup>
+
+## 相关接口
+
+<Columns cols={2}>
+  <Card title="提交视频任务" icon="upload" href="/cn/api-reference/endpoint/submit-video-task">
+    统一视频任务提交入口与多模型参数说明
+  </Card>
+  <Card title="查询视频任务" icon="search" href="/cn/api-reference/endpoint/query-video-task">
+    轮询任务状态并获取视频 URL
+  </Card>
+</Columns>

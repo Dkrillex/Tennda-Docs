@@ -1,0 +1,31 @@
+---
+title: 'Realtime'
+description: 'WebSocket real-time audio conversation'
+api: 'GET wss://api.tennda.ai/v1/realtime'
+---
+
+## Introduction
+
+OpenAI-compatible Realtime API over **WebSocket** for low-latency voice interaction—not a standard HTTP POST endpoint.
+
+## Authentication
+
+Pass your Bearer token when opening the WebSocket (per OpenAI Realtime conventions—header or initial auth message).
+
+## Connection example
+
+```
+wss://api.tennda.ai/v1/realtime?model=gpt-4o-realtime-preview
+```
+
+<ParamField query="model" type="string">
+  Realtime model, e.g. `gpt-4o-realtime-preview`
+</ParamField>
+
+## Notes
+
+- **101 Switching Protocols** indicates a successful upgrade  
+- Exchange audio/text using Realtime event messages after connect  
+- Suitable for voice assistants and live translation  
+
+See [OpenAI Realtime guide](https://platform.openai.com/docs/guides/realtime) for event schemas.

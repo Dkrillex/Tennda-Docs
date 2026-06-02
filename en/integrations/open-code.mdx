@@ -1,0 +1,232 @@
+---
+title: 'OpenCode'
+description: 'OpenCode integration guide: 75+ models in one place via TenndaAI'
+---
+
+## 1. Overview
+
+**OpenCode** is an open-source AI coding assistant with first-class support for **75+ models** and self-hosted deployments. Through **TenndaAI**, you can use mainstream models (GPT, Claude, Gemini, Qwen…) inside OpenCode without configuring every vendor separately.
+
+<CardGroup cols={2}>
+  <Card title="Unified multi-model" icon="layer-group">
+    One provider, full GPT / Claude / Gemini / Qwen family
+  </Card>
+  <Card title="Self-host friendly" icon="house">
+    Supports your own backends and per-project config overrides
+  </Card>
+  <Card title="Responses API ready" icon="bolt">
+    `apiCompatibility: "responses"` works with the GPT Codex series
+  </Card>
+  <Card title="Open & auditable" icon="github">
+    Fully open-source, customize as needed
+  </Card>
+</CardGroup>
+
+**Download**: [https://opencode.ai/](https://opencode.ai/)
+
+## 2. Quick Setup (TenndaAI)
+
+### 2.1 Get an API key
+
+<Steps>
+  <Step title="Sign in">
+    Go to the [TenndaAI console](https://client.tennda.ai) and register or log in.
+  </Step>
+  <Step title="Create a token">
+    Open [API Keys](https://client.tennda.ai/#/keys), click "Create new token", and copy the `sk-xxxxxxxxxx` key.
+  </Step>
+</Steps>
+
+### 2.2 Configure a custom provider in OpenCode
+
+<Steps>
+  <Step title="Open provider settings">
+    In OpenCode, go to **Server / Provider** settings and select **Add custom provider** (OpenAI-compatible).
+  </Step>
+  <Step title="Fill in provider info">
+    | Field | Value |
+    |-------|-------|
+    | **Provider ID** | `tennda` (lowercase, digits, hyphens or underscores) |
+    | **Display name** | `TenndaAI` |
+    | **Base URL** | `https://api.tennda.ai/v1` (must end with `/v1`) |
+    | **API key** | Paste your TenndaAI key from the previous step |
+  </Step>
+  <Step title="Add models">
+    Under **Models**, add model IDs you want to use (e.g. `gpt-5.5`, `claude-sonnet-4-6`, `gemini-3.5-flash`). IDs must match the [TenndaAI model list](https://client.tennda.ai/#/models).
+  </Step>
+  <Step title="Save and use">
+    After saving, select via **`providerID/modelID`** in chats and settings, e.g. `tennda/gpt-5.5`.
+  </Step>
+</Steps>
+
+<img src="/images/open-code1.png" alt="OpenCode custom provider setup" />
+
+<img src="/images/open-code2.png" alt="OpenCode provider and API config" />
+
+<img src="/images/open-code3.png" alt="OpenCode model config" />
+
+### 2.3 Switching models
+
+In chat or settings, pick the configured provider/model (e.g. `tennda/gpt-5.5`) to switch.
+
+<img src="/images/open-code4.png" alt="OpenCode switch model" />
+
+<Tip>
+- For self-hosted or backup TenndaAI endpoints, change the **Base URL**, e.g. `http://your-server:3003/v1`.
+- Set a default model in project or global `opencode.json` via `"model": "tennda/modelID"`.
+</Tip>
+
+## 3. Some Models Require the Responses API (Important)
+
+Some **Azure / OpenAI** models **only support the Responses API**, not the legacy Chat Completions endpoint. When OpenCode defaults to Chat Completions you'll see:
+
+> The chatCompletion operation does not work with the specified model, **gpt-5.1-codex**. Please choose different model and try again.
+
+The screenshot below shows how this error appears in OpenCode:
+
+<img src="/images/open-code8.png" alt="Error when using gpt-5.1-codex with Chat Completions" />
+
+### 3.1 Models that require Responses API
+
+| Model ID / family | Notes |
+|-------------------|-------|
+| **gpt-5.1-codex** | GPT 5.1 Codex (code-focused) — Responses API only |
+| **gpt-5.2-codex** | Same as above |
+| **computer-use-preview** | Experimental model used with the Responses API computer-use tools |
+
+For the latest full list, see **Azure / vendor docs**:
+
+- [Azure OpenAI Responses API](https://learn.microsoft.com/en-us/azure/ai-foundry/openai/how-to/responses)
+- [Which models work with each operation](https://go.microsoft.com/fwlink/?linkid=2197993)
+
+### 3.2 How to configure in OpenCode
+
+Add the `apiCompatibility` parameter to a model in your config — no code changes needed.
+
+<Steps>
+  <Step title="Locate the config file">
+    - **Windows**: `C:\Users\<username>\.config\opencode\opencode.jsonc`
+    - **macOS / Linux**: `~/.config/opencode/opencode.jsonc`
+
+    <img src="/images/open-code5.png" alt="Responses API requirement for some models" />
+  </Step>
+  <Step title="Add the parameter">
+    In your existing custom provider (pointing at TenndaAI or your own API), add **`"apiCompatibility": "responses"`** for models that need it (e.g. `gpt-5.1-codex`):
+
+    <img src="/images/open-code6.png" alt="opencode.jsonc: apiCompatibility responses for gpt-5.1-codex" />
+
+    ```jsonc
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "disabled_providers": [
+        "backup_tennda"
+      ],
+      "provider": {
+        "backup_tennda": {
+          "name": "backup_tennda",
+          "npm": "@ai-sdk/openai-compatible",
+          "models": {
+            "gpt-5.2": {
+              "name": "gpt-5.2"
+            },
+            "gpt-5.1-codex": {
+              "name": "gpt-5.1-codex",
+              "apiCompatibility": "responses"
+            },
+            "gpt-5.1-chat": {
+              "name": "gpt-5.1-chat"
+            }
+          },
+          "options": {
+            "baseURL": "xxxxxxxx"
+          }
+        },
+        "backup_v1": {
+          "name": "backup_v1",
+          "npm": "@ai-sdk/openai-compatible",
+          "models": {
+            "gpt-5.2": {
+              "name": "gpt-5.2"
+            },
+            "gpt-5.1-codex": {
+              "name": "gpt-5.1-codex",
+              "apiCompatibility": "responses"
+            },
+            "gpt-5.1-chat": {
+              "name": "gpt-5.1-chat"
+            }
+          },
+          "options": {
+            "baseURL": "https://api.tennda.ai/v1"
+          }
+        }
+      }
+    }
+    ```
+
+    After saving, selecting that provider's `gpt-5.1-codex` (e.g. `backup_v1/gpt-5.1-codex`) will send requests to that baseURL using the **Responses API** format.
+  </Step>
+  <Step title="Verify the setup">
+    Pick a correctly configured model (e.g. `backup_v1/gpt-5.1-chat`) and test a chat — successful reply means you're good:
+
+    <img src="/images/open-code7.png" alt="OpenCode chat after successful config" />
+  </Step>
+</Steps>
+
+### 3.3 Summary
+
+| Scenario | What to do |
+|----------|------------|
+| Models that only support Responses (e.g. **gpt-5.1-codex**, **gpt-5.2-codex**) | Add **`"apiCompatibility": "responses"`** to that model under your custom provider's **models** in `opencode.jsonc` |
+| Regular models (e.g. **gpt-5.5**, **claude-sonnet-4-6**, **gemini-3.5-flash**) | No `apiCompatibility` needed — follow Quick Setup |
+
+## 4. Recommended Models (via TenndaAI)
+
+| Category | Model ID examples | Notes |
+|----------|-------------------|-------|
+| Flagship coding | `gpt-5.5`, `claude-opus-4-7` | Best overall coding ability |
+| Codex series | `gpt-5.1-codex` | Requires Responses API (see Section 3) |
+| General chat + code | `gpt-5.4`, `claude-sonnet-4-6`, `claude-sonnet-4-5-20250929` | Works out of the box |
+| Fast / low latency | `gemini-3.5-flash`, `claude-haiku-4-5-20251001` | Great for completions & tool use |
+| Cost-effective | `gpt-5.4-mini`, `gemini-3.1-flash-lite-preview`, `qwen3-coder-plus` | High concurrency / batch |
+
+See the [TenndaAI model list](https://client.tennda.ai/#/models) for complete IDs.
+
+### Success example
+
+A normal chat in OpenCode using TenndaAI:
+
+<img src="/images/open-code7.png" alt="OpenCode success with TenndaAI" />
+
+## 5. FAQ
+
+<AccordionGroup>
+  <Accordion title="`The chatCompletion operation does not work…` error">
+    That model only supports the Responses API. Add `"apiCompatibility": "responses"` to it in `opencode.jsonc` — see Section 3.
+  </Accordion>
+
+  <Accordion title="401 / invalid API key">
+    1. Check the key for completeness and trailing whitespace.
+    2. Confirm it isn't deleted/disabled in the [TenndaAI console](https://client.tennda.ai/#/keys).
+    3. Ensure your balance is positive.
+  </Accordion>
+
+  <Accordion title="404 / endpoint not found">
+    Make sure the Base URL ends with `/v1`: `https://api.tennda.ai/v1`.
+  </Accordion>
+
+  <Accordion title="`model not found` for a valid-looking ID">
+    Model IDs must exactly match the [TenndaAI list](https://client.tennda.ai/#/models). Watch the case and version suffix (e.g. `claude-sonnet-4-5-20250929`, not `claude-sonnet-4-5`).
+  </Accordion>
+
+  <Accordion title="How to standardize across a team?">
+    Commit `opencode.jsonc` to `.config/opencode/` in the repo (or the project root). Each engineer brings their own API key.
+  </Accordion>
+</AccordionGroup>
+
+## 6. References
+
+- OpenCode site and download: [https://opencode.ai/](https://opencode.ai/)
+- OpenCode config and models: [Models](https://opencode.ai/docs/models), [Providers](https://opencode.ai/docs/providers)
+- TenndaAI console: [https://client.tennda.ai](https://client.tennda.ai)
+- Model catalog: [https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)

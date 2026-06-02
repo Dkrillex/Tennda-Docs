@@ -1,0 +1,57 @@
+---
+title: 'Embeddings (Gemini format)'
+description: 'POST /v1/engines/{model}/embeddings'
+api: 'POST https://api.tennda.ai/v1/engines/{model}/embeddings'
+---
+
+## Introduction
+
+Create embeddings with the model specified in the URL path. Request body matches the OpenAI-style fields.
+
+See also [Embeddings (OpenAI format)](/en/api-reference/endpoint/embeddings/create-embedding) (`POST /v1/embeddings`).
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="model" type="string" required>
+  Model or engine ID in the path
+</ParamField>
+
+## Request body
+
+<ParamField body="model" type="string" required>
+  Model name (may match path `model`)
+</ParamField>
+
+<ParamField body="input" type="string | array" required>
+  Text to embed
+</ParamField>
+
+<ParamField body="encoding_format" type="string" default="float">
+  `float` or `base64`
+</ParamField>
+
+<ParamField body="dimensions" type="integer">
+  Output dimensions
+</ParamField>
+
+## Example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/engines/text-embedding-ada-002/embeddings" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": "Hello, world"
+  }'
+```
+
+## Response
+
+Same shape as `POST /v1/embeddings` (`object`, `data`, `model`, `usage`).

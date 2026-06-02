@@ -1,0 +1,29 @@
+---
+title: 'Delete asset'
+description: 'DELETE /v1/assets/{virtual_id}'
+api: 'DELETE https://api.tennda.ai/v1/assets/{virtual_id}'
+---
+
+## Introduction
+
+Delete one asset.
+
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Path parameters
+
+<ParamField path="virtual_id" type="string" required>
+  Virtual asset ID
+</ParamField>
+
+## Example
+
+```bash
+curl -X DELETE "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

@@ -1,0 +1,82 @@
+---
+title: 'Seedance 2.0 Overview'
+description: 'Doubao Seedance 2.0 video generation and asset library'
+---
+
+## Introduction
+
+Seedance 2.0 (`seedance-2-0` / `seedance-2-0-fast`) supports text-to-video, image-to-video, multi-modal references, and an asset library (`asset://`). This page is the series overview; each endpoint has its own page below.
+
+<Note>
+  Map each `asset://` by `asset_type` to `image_url`, `video_url`, or `audio_url`. Assets must be created from public **https** URLs only (no Base64 upload).
+</Note>
+
+## Authentication
+
+All endpoints: `Authorization: Bearer sk-xxxxxxxxxx`
+
+## Models
+
+| Model ID | Description |
+|----------|-------------|
+| `seedance-2-0` | Standard; `480p` / `720p` / `1080p` |
+| `seedance-2-0-fast` | Fast; `480p` / `720p` (no 1080p) |
+
+## Endpoints
+
+### Video generation
+
+<CardGroup cols={2}>
+  <Card title="Create video generation" icon="upload" href="/en/api-reference/endpoint/seedance-2.0/create-video-generation">
+    POST /v1/video/generations
+  </Card>
+  <Card title="Get video generation" icon="search" href="/en/api-reference/endpoint/seedance-2.0/get-video-generation">
+    GET /v1/video/generations/{task_id}
+  </Card>
+  <Card title="Get moderation result" icon="shield" href="/en/api-reference/endpoint/seedance-2.0/get-moderation-result">
+    GET /v1/video/generations/moderation-result/{task_id}
+  </Card>
+</CardGroup>
+
+### Asset library (aigc)
+
+<CardGroup cols={2}>
+  <Card title="Create asset group" icon="folder-plus" href="/en/api-reference/endpoint/seedance-2.0/create-asset-group">
+    POST /v1/asset-groups
+  </Card>
+  <Card title="List asset groups" icon="folders" href="/en/api-reference/endpoint/seedance-2.0/list-asset-groups">
+    GET /v1/asset-groups
+  </Card>
+  <Card title="Delete asset group" icon="trash" href="/en/api-reference/endpoint/seedance-2.0/delete-asset-group">
+    DELETE /v1/asset-groups/{group_id}
+  </Card>
+  <Card title="Create asset" icon="file-plus" href="/en/api-reference/endpoint/seedance-2.0/create-asset">
+    POST /v1/assets
+  </Card>
+  <Card title="List assets" icon="list" href="/en/api-reference/endpoint/seedance-2.0/list-assets">
+    GET /v1/assets
+  </Card>
+  <Card title="Get asset" icon="file" href="/en/api-reference/endpoint/seedance-2.0/get-asset">
+    GET /v1/assets/{virtual_id}
+  </Card>
+  <Card title="Delete asset" icon="file-minus" href="/en/api-reference/endpoint/seedance-2.0/delete-asset">
+    DELETE /v1/assets/{virtual_id}
+  </Card>
+</CardGroup>
+
+### Liveness face
+
+<CardGroup cols={2}>
+  <Card title="Create asset group (liveness)" icon="user-check" href="/en/api-reference/endpoint/seedance-2.0/create-visual-validate-session">
+    POST /v1/visual-validate/session
+  </Card>
+</CardGroup>
+
+## Recommended flow
+
+1. Optional: create asset group → create asset → poll until `status: active`  
+2. `POST /v1/video/generations`  
+3. `GET /v1/video/generations/{task_id}` until `completed`  
+4. On moderation failure, see [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result)
+
+See also [Submit video task](/en/api-reference/endpoint/submit-video-task).

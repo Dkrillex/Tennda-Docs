@@ -1,0 +1,359 @@
+---
+title: 'Wan 2.7 Video Generation'
+description: 'Alibaba Wan 2.7 text-to-video, image-to-video, and reference-to-video'
+api: 'POST https://api.tennda.ai/v1/video/generations'
+---
+
+## Introduction
+
+Wan 2.7 is Alibaba Cloud Bailian's video generation family: text-to-video (Wan2.7-t2v), image-to-video (Wan2.7-i2v), reference-to-video (Wan2.7-r2v), and video editing (Wan2.7-videoedit). It supports **720P** and **1080P** output.
+
+Use TenndaAI's unified video API: [submit a task](/en/api-reference/endpoint/submit-video-task) to get a `task_id`, then [query the task](/en/api-reference/endpoint/query-video-task) to poll status and get `url`.
+
+<Note>
+  Wan 2.7 passes underlying DashScope parameters via `metadata.input` and `metadata.parameters`, unlike the flat fields used by Wan 2.5.
+</Note>
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Supported models
+
+| Model ID | Description | Resolution | Max duration | Highlights |
+|----------|-------------|------------|--------------|------------|
+| `wan2.7-t2v-2026-04-25` | Text-to-video | 720P, 1080P | 15s | Multi-shot narrative, custom audio |
+| `wan2.7-i2v-2026-04-25` | Image-to-video | 720P, 1080P | 15s | First frame, first+last frame, continuation |
+| `wan2.7-r2v` | Reference-to-video | 720P, 1080P | 10s (with video ref) / 15s (without) | Multi-modal refs, voice clone, multi-character |
+
+## Call flow
+
+1. **Submit**: `POST /v1/video/generations` with `model`, `prompt`, `duration`, and Wan parameters in `metadata`.
+2. **Poll**: `GET /v1/video/generations/{task_id}` every 3–15 seconds until `succeeded` or `failed`.
+3. **Result**: On success, `url` contains the video (typically valid for 24 hours—download promptly).
+
+## Request structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `model` | string | Yes | Model ID (see table above) |
+| `prompt` | string | Yes | Video prompt (same as `metadata.input.prompt`) |
+| `duration` | integer | No | Duration in seconds; keep in sync with `metadata.parameters.duration` |
+| `metadata.input` | object | Yes | `prompt`, `media`, `audio_url`, `negative_prompt`, etc. |
+| `metadata.parameters` | object | No | `resolution`, `ratio`, `duration`, `prompt_extend`, `watermark`, `seed` |
+
+### Submit response
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "submitted",
+  "format": "mp4"
+}
+```
+
+### Query response (success)
+
+```json
+{
+  "task_id": "video_69095b4ce0048190893a01510c0c98b0",
+  "status": "succeeded",
+  "format": "mp4",
+  "url": "https://tennda-ads.oss-cn-guangzhou.aliyuncs.com/2025/11/18/abc123/video.mp4"
+}
+```
+
+## Usage scenarios
+
+<Tabs>
+  <Tab title="Text-to-video (T2V)">
+Generate video from text with multi-shot prompts, prompt rewriting, and optional custom audio.
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  Text prompt. Use shot timestamps, e.g. "Shot 1 [0-3s] … Shot 2 [3-6s] …"
+</ParamField>
+
+<ParamField body="metadata.input.negative_prompt" type="string">
+  Negative prompt, max 500 characters
+</ParamField>
+
+<ParamField body="metadata.input.audio_url" type="string">
+  Custom audio URL (wav/mp3), 2–30s, max 15MB
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="720P">
+  `720P` or `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  Aspect ratio: `16:9`, `9:16`, `1:1`, `4:3`, `3:4`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  Duration in seconds, 2–15
+</ParamField>
+
+<ParamField body="metadata.parameters.prompt_extend" type="boolean" default="true">
+  Enable prompt rewriting
+</ParamField>
+
+<ParamField body="metadata.parameters.watermark" type="boolean" default="false">
+  Add watermark
+</ParamField>
+
+**Multi-shot example:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-t2v-2026-04-25",
+    "prompt": "Shot 1 [0-3s] Wide: rainy NYC street at night. Shot 2 [3-6s] Medium: detective enters an old building.",
+    "duration": 6,
+    "metadata": {
+      "input": {
+        "prompt": "Shot 1 [0-3s] Wide: rainy NYC street at night. Shot 2 [3-6s] Medium: detective enters an old building."
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 6,
+        "prompt_extend": true,
+        "watermark": false
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="Image-to-video (I2V)">
+First-frame, first+last-frame, and video continuation via `metadata.input.media`.
+
+#### media types
+
+| type | Description | Limit |
+|------|-------------|-------|
+| `first_frame` | First frame image | 1 |
+| `last_frame` | Last frame image | 1 (with `first_frame`) |
+| `driving_audio` | Driving audio | 1 (optional, first-frame mode) |
+| `first_clip` | First video clip | 1 (continuation) |
+
+<ParamField body="metadata.input.media" type="array" required>
+  Media list; each item has `type` and `url`
+</ParamField>
+
+<ParamField body="metadata.parameters.resolution" type="string" default="720P">
+  `720P` or `1080P`
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  Duration in seconds, 2–15
+</ParamField>
+
+**First frame + driving audio:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "A graffiti boy comes alive from the wall and performs rap.",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "A graffiti boy comes alive from the wall and performs rap.",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/first_frame.png"},
+          {"type": "driving_audio", "url": "https://example.com/rap.mp3"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "duration": 10,
+        "prompt_extend": true
+      }
+    }
+  }'
+```
+
+**First + last frame:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "Timelapse from sunrise to sunset",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "Timelapse from sunrise to sunset",
+        "media": [
+          {"type": "first_frame", "url": "https://example.com/sunrise.png"},
+          {"type": "last_frame", "url": "https://example.com/sunset.png"}
+        ]
+      },
+      "parameters": {
+        "duration": 10
+      }
+    }
+  }'
+```
+
+**Video continuation:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-i2v-2026-04-25",
+    "prompt": "A girl takes a mirror selfie, then leaves with her backpack",
+    "duration": 15,
+    "metadata": {
+      "input": {
+        "prompt": "A girl takes a mirror selfie, then leaves with her backpack",
+        "media": [
+          {"type": "first_clip", "url": "https://example.com/girl_selfie.mp4"}
+        ]
+      },
+      "parameters": {
+        "duration": 15
+      }
+    }
+  }'
+```
+  </Tab>
+
+  <Tab title="Reference-to-video (R2V)">
+Use **图1/图2** or **视频1/视频2** in `prompt` to refer to items in `media` (images and videos are numbered separately).
+
+#### media types
+
+| type | Description | Limit |
+|------|-------------|-------|
+| `reference_image` | Reference image | Up to 5 (total images+videos ≤ 5) |
+| `reference_video` | Reference video | Up to 5 |
+| `first_frame` | First frame image | Up to 1 (optional, controls aspect) |
+
+<ParamField body="metadata.input.prompt" type="string" required>
+  Prompt using 图n / 视频n to refer to media
+</ParamField>
+
+<ParamField body="metadata.input.media[].reference_voice" type="string">
+  Voice reference audio URL (for `reference_image` / `reference_video`)
+</ParamField>
+
+<ParamField body="metadata.parameters.ratio" type="string" default="16:9">
+  Aspect ratio; ignored if `first_frame` is provided
+</ParamField>
+
+<ParamField body="metadata.parameters.duration" type="integer" default="5">
+  2–10s with video refs; 2–15s without
+</ParamField>
+
+**Multi-subject example:**
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "wan2.7-r2v",
+    "prompt": "视频1抱着图3，在图4的椅子上弹奏民谣，并说道：\"今天的阳光真好。\"图1路过，把图2放到视频1旁边的桌子上。",
+    "duration": 10,
+    "metadata": {
+      "input": {
+        "prompt": "视频1抱着图3，在图4的椅子上弹奏民谣，并说道：\"今天的阳光真好。\"图1路过，把图2放到视频1旁边的桌子上。",
+        "media": [
+          {"type": "reference_image", "url": "https://example.com/girl.jpg", "reference_voice": "https://example.com/girl_voice.mp3"},
+          {"type": "reference_video", "url": "https://example.com/boy_video.mp4", "reference_voice": "https://example.com/boy_voice.mp3"},
+          {"type": "reference_image", "url": "https://example.com/object3.png"},
+          {"type": "reference_image", "url": "https://example.com/object4.png"},
+          {"type": "reference_image", "url": "https://example.com/background5.png"}
+        ]
+      },
+      "parameters": {
+        "resolution": "720P",
+        "ratio": "16:9",
+        "duration": 10,
+        "prompt_extend": true
+      }
+    }
+  }'
+```
+  </Tab>
+</Tabs>
+
+## Parameter reference
+
+### Common parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `duration` | integer | T2V/I2V: 2–15s; R2V: 2–10s with video refs, else 2–15s |
+| `resolution` | string | `720P` or `1080P` |
+| `prompt_extend` | boolean | Prompt rewriting, default `true` |
+| `watermark` | boolean | Watermark, default `false` |
+| `seed` | integer | Random seed, `[0, 2147483647]` |
+
+### T2V & R2V
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `ratio` | string | `16:9`, `9:16`, `1:1`, `4:3`, `3:4`. I2V aspect follows assets—omit `ratio` |
+
+### Media limits
+
+| Type | Formats | Size | Notes |
+|------|---------|------|-------|
+| Image | JPEG, JPG, PNG, BMP, WEBP | ≤ 20MB | 240–8000px, aspect 1:8–8:1 |
+| Audio (driving_audio) | WAV, MP3 | ≤ 15MB | 2–30s |
+| Audio (reference_voice) | WAV, MP3 | ≤ 15MB | 1–10s |
+| Video | MP4, MOV | ≤ 100MB | first_clip: 2–10s; reference_video: 1–30s |
+
+## Error handling
+
+| HTTP | Meaning | Action |
+|------|---------|--------|
+| 400 | Invalid parameters | Check `metadata` and media limits |
+| 401 | Unauthorized | Check API Key |
+| 429 | Rate limited | Retry later |
+| 502 | Upstream error | Retry later |
+
+On failure, `status` is `failed` and `error.message` has details.
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How long is the video URL valid?">
+    `url` and `task_id` are typically valid for **24 hours**. Download and store promptly.
+  </Accordion>
+  <Accordion title="How do I use voice reference?">
+    Only **wan2.7-r2v** supports `reference_voice` on `reference_image` or `reference_video` (1–10s audio URL).
+  </Accordion>
+  <Accordion title="What I2V modes are supported?">
+    - **First frame**: `first_frame` (optional `driving_audio`)  
+    - **First + last**: `first_frame` + `last_frame`  
+    - **Continuation**: `first_clip`
+  </Accordion>
+  <Accordion title="How is Wan 2.7 different from Wan 2.5?">
+    Wan 2.7 uses `metadata.input` / `metadata.parameters` and `media`; Wan 2.5 uses flat top-level fields. See [Submit video task](/en/api-reference/endpoint/submit-video-task).
+  </Accordion>
+</AccordionGroup>
+
+## Related endpoints
+
+<Columns cols={2}>
+  <Card title="Submit video task" icon="upload" href="/en/api-reference/endpoint/submit-video-task">
+    Unified submit endpoint and multi-model parameters
+  </Card>
+  <Card title="Query video task" icon="search" href="/en/api-reference/endpoint/query-video-task">
+    Poll status and get video URL
+  </Card>
+</Columns>

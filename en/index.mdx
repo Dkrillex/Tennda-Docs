@@ -1,0 +1,153 @@
+---
+title: "TenndaAI - Enterprise AI Model API Gateway"
+description: "Enterprise-grade AI model API gateway supporting 200+ popular AI models"
+---
+
+## Welcome to TenndaAI
+
+**TenndaAI** is an enterprise-grade AI model API gateway based on the unified OpenAI API standard, supporting 200+ popular AI models. One token to access OpenAI, Claude, Gemini, DeepSeek, Qwen, Kimi, GLM and all mainstream large language models.
+
+## 📖 Getting Started
+
+<Columns cols={2}>
+  <Card title="API Reference" icon="book" href="/en/api-reference/index">
+    Complete API documentation and developer guide
+  </Card>
+</Columns>
+
+## 🔧 Core APIs
+
+<Columns cols={2}>
+  <Card title="Chat Completions API" icon="comments" href="/en/api-reference/endpoint/chat-openai">
+    Create multi-turn conversations and text generation
+  </Card>
+  <Card title="Image Generation API" icon="image" href="/en/api-reference/endpoint/image-generation">
+    Text-to-image, image-to-image, context-aware generation
+  </Card>
+  <Card title="Models API" icon="list" href="/en/api-reference/endpoint/list-models">
+    Get all available model information
+  </Card>
+</Columns>
+
+## 💡 Supported Models
+
+TenndaAI ships with **100+** mainstream models — one API key reaches **Anthropic · OpenAI · Google · Qwen · BytePlus · DeepSeek · GLM · MiniMax · Moonshot Kimi**, the top 9 providers in the industry.
+
+### ⭐ Featured This Week
+
+<CardGroup cols={3}>
+  <Card title="Claude Opus 4.7" icon="trophy">
+    Anthropic's latest flagship — top choice for complex agents and production code
+  </Card>
+  <Card title="GPT-5.5" icon="bolt">
+    OpenAI's latest flagship — reasoning, writing and full-stack coding
+  </Card>
+  <Card title="Gemini 3.5 Flash" icon="gauge-high">
+    High throughput, low latency — tool calls and high-concurrency chat
+  </Card>
+</CardGroup>
+
+### Model Matrix
+
+| Vendor | Representative models |
+|--------|----------------------|
+| 🎭 **Anthropic Claude** | Claude Opus 4.7 ⭐ / Opus 4.6 / Sonnet 4.6 / Sonnet 4.5 / Haiku 4.5 |
+| 🤖 **OpenAI** | GPT-5.5 ⭐ / GPT-5.4 family (5.4 / Pro / Mini / Nano) / GPT-Image-2 |
+| 🌟 **Google Gemini** | Gemini 3.5 Flash ⭐ / 3.1 Pro Preview / Flash Lite / Flash Image / 3 Pro Image |
+| 🐉 **Alibaba Qwen** | Qwen3.5 Plus ⭐ / Qwen3.5 Flash / Qwen3 Max / Qwen3 Coder Plus / Qwen Image Plus |
+| 🌋 **BytePlus Doubao Seed** | Doubao Seed 2.0 Pro ⭐ / Code Preview / Lite / Mini |
+| 🔍 **DeepSeek** | DeepSeek V3.2 ⭐ / V3 / R1 (reasoning) |
+| 💎 **Zhipu GLM** | glm-5 ⭐ / glm-4.7 (200K, coding & long-horizon tasks) |
+| ✨ **MiniMax** | MiniMax M2 ⭐ / Text-01 / abab6.5s |
+| 🌙 **Moonshot Kimi** | kimi-k2.5 ⭐ (native multimodal) / Kimi K2 250905 |
+
+<Tip>
+For full model IDs, context length and live pricing, visit the [TenndaAI Model Catalog](https://client.tennda.ai/#/models). See the [Supported Models page](/en/api-reference/models) for detailed descriptions.
+</Tip>
+
+## 🎯 Use Cases
+
+<Columns cols={2}>
+  <Card title="AI Chat" icon="message" href="/en/integrations/cherry-studio">
+    Cherry Studio, Chatbox and other AI chat clients
+  </Card>
+  <Card title="Coding" icon="code" href="/en/integrations/cursor">
+    Cursor, Claude Code, Cline and other AI coding tools
+  </Card>
+  <Card title="Frameworks" icon="cube" href="/en/integrations/langchain">
+    LangChain, Dify and other AI development frameworks
+  </Card>
+  <Card title="Translation" icon="language" href="/en/integrations/immersive-translate">
+    Immersive Translate, Bob and other translation tools
+  </Card>
+</Columns>
+
+## 🚀 Why TenndaAI?
+
+### One API, Multiple Models
+
+No need to manage separate accounts and API keys for each AI service:
+- **One account**: Manage all AI services
+- **One API key**: Access all models
+- **One standard**: OpenAI API compatible
+
+### 🔧 Easy to Use
+
+Switching models is as simple as changing a parameter:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-xxxxxxxxxx",
+    base_url="https://api.tennda.ai/v1"
+)
+
+# Use GPT-5.5
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+# Switch to Claude - just change the model name
+response = client.chat.completions.create(
+    model="claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### 🛡️ Stable & Reliable
+
+- **High Availability**: Multi-node deployment, smart routing
+- **Auto Fallback**: Automatic switching when model unavailable
+- **Load Balancing**: Smart request distribution, avoid rate limits
+- **Real-time Monitoring**: 24/7 service status monitoring
+
+### 💰 Cost Optimization
+
+- **Unified Billing**: All models use unified balance
+- **Transparent Pricing**: Clear pricing structure
+- **Usage Statistics**: Detailed usage reports
+- **Flexible Payments**: Multiple payment methods supported
+
+## 🚀 Get Started
+
+<Steps>
+  <Step title="Contact BD to Get an Account">
+    TenndaAI does not offer public registration. Email [bd@tennda.ai](mailto:bd@tennda.ai) to reach our BD team and provision your account.
+  </Step>
+  <Step title="Get API Key">
+    Log in to the console and generate your API key
+  </Step>
+  <Step title="Start Using">
+    Check [API Documentation](/en/api-reference/models) to begin integration
+  </Step>
+</Steps>
+
+## 🔗 Quick Links
+
+<Columns cols={2}>
+  <Card title="Dashboard" icon="gauge" href="https://client.tennda.ai">
+    Manage API keys, view usage and billing
+  </Card>
+</Columns>

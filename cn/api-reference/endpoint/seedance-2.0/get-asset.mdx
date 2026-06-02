@@ -1,0 +1,37 @@
+---
+title: '查询单个素材'
+description: 'GET /v1/assets/{virtual_id}'
+api: 'GET https://api.tennda.ai/v1/assets/{virtual_id}'
+---
+
+## 简介
+
+查询单个素材详情与处理状态。生成视频前请确认 `status` 为 `active`。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 路径参数
+
+<ParamField path="virtual_id" type="string" required>
+  素材虚拟 ID（如 `asset-xxx`）
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## 状态说明
+
+| status | 说明 |
+|--------|------|
+| `processing` | 处理中，继续轮询 |
+| `active` | 可用，可写入 `asset://` |
+| `failed` | 处理失败 |

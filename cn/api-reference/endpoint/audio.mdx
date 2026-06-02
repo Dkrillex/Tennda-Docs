@@ -1,0 +1,137 @@
+---
+title: '音频（Audio）'
+description: 'OpenAI 兼容音频与 Gemini 原生 TTS'
+---
+
+## 简介
+
+TenndaAI 音频能力分为两类：
+
+- **OpenAI 格式**：`/v1/audio/speech`（TTS）、`/v1/audio/transcriptions`（STT）、`/v1/audio/translations`（翻译），兼容 OpenAI Audio API。
+- **Gemini 原生格式**：`POST /v1beta/models/{model}:generateContent`，通过 `responseModalities: ["AUDIO"]` 与 `speechConfig` 生成语音（如 `gemini-2.5-flash-preview-tts`）。
+
+Base URL：`https://api.tennda.ai`。Gemini 鉴权与 [原生 Gemini 格式](/cn/api-reference/endpoint/gemini-native) 一致。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`（OpenAI 与 Gemini 均支持）
+</ParamField>
+
+<ParamField header="x-goog-api-key" type="string">
+  Gemini 可选：`x-goog-api-key: sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求示例
+
+<Tabs>
+  <Tab title="OpenAI 格式">
+    <Tabs>
+      <Tab title="文本转语音">
+        **POST** `/v1/audio/speech`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/speech" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "model": "tts-1",
+            "input": "你好，欢迎使用 TenndaAI。",
+            "voice": "alloy",
+            "response_format": "mp3",
+            "speed": 1.0
+          }' \
+          --output speech.mp3
+        ```
+      </Tab>
+      <Tab title="音频转录">
+        **POST** `/v1/audio/transcriptions`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/transcriptions" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -F file="@audio.mp3" \
+          -F model="whisper-1"
+        ```
+      </Tab>
+      <Tab title="音频翻译">
+        **POST** `/v1/audio/translations`
+
+        ```bash
+        curl -X POST "https://api.tennda.ai/v1/audio/translations" \
+          -H "Authorization: Bearer sk-xxxxxxxxxx" \
+          -F file="@audio.mp3" \
+          -F model="whisper-1"
+        ```
+      </Tab>
+    </Tabs>
+  </Tab>
+  <Tab title="Gemini 格式">
+    **POST** `/v1beta/models/{model}:generateContent`
+
+    文本转语音（TTS）需将路径中的 `{model}` 换为 TTS 模型 ID，并在 `generationConfig` 中指定音频输出与音色。
+
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1beta/models/gemini-2.5-flash-preview-tts:generateContent" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "contents": [
+          {
+            "parts": [
+              {"text": "用欢快的语气说：祝你今天过得愉快！"}
+            ]
+          }
+        ],
+        "generationConfig": {
+          "responseModalities": ["AUDIO"],
+          "speechConfig": {
+            "voiceConfig": {
+              "prebuiltVoiceConfig": {
+                "voiceName": "Kore"
+              }
+            }
+          }
+        }
+      }'
+    ```
+
+    响应中音频位于 `candidates[0].content.parts[0].inlineData`（Base64，常见为 PCM），可解码保存：
+
+    ```bash
+    # 将响应 JSON 中 inlineData.data 解码为 out.pcm
+    echo "<base64_data>" | base64 --decode > out.pcm
+    ```
+
+    多说话人场景可使用 `speechConfig.multiSpeakerVoiceConfig`（详见 [Google TTS 文档](https://ai.google.dev/gemini-api/docs/speech-generation)）。
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+### OpenAI 格式
+
+**Speech（`/v1/audio/speech`）**
+
+- **model**：如 `tts-1`、`tts-1-hd`  
+- **input**：待合成文本（≤ 4096 字符）  
+- **voice**：`alloy`、`echo`、`fable`、`onyx`、`nova`、`shimmer`  
+- **response_format**：`mp3`、`opus`、`aac`、`flac`、`wav`、`pcm`  
+
+**Transcriptions / Translations**
+
+- **file**：音频文件（multipart）  
+- **model**：如 `whisper-1`  
+
+### Gemini 格式（TTS）
+
+- **model**（路径参数）：如 `gemini-2.5-flash-preview-tts`、`gemini-2.5-pro-preview-tts`  
+- **contents[].parts[].text**：待朗读或带风格指令的文本  
+- **generationConfig.responseModalities**：须包含 `"AUDIO"`  
+- **generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName**：预置音色，如 `Kore`、`Puck`、`Charon`、`Fenrir` 等  
+
+<Note>
+  Gemini 音频**仅**通过 `generateContent` 输出，与 OpenAI `/v1/audio/*` 路径不同。完整 Gemini 参数（流式、多模态输入等）见 [原生 Gemini 格式](/cn/api-reference/endpoint/gemini-native)。
+</Note>
+
+OpenAI 音频详见 [OpenAI Audio API](https://platform.openai.com/docs/api-reference/audio)；Gemini TTS 详见 [Speech generation](https://ai.google.dev/gemini-api/docs/speech-generation)。

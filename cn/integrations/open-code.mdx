@@ -1,0 +1,232 @@
+---
+title: 'OpenCode'
+description: 'OpenCode 集成指南：通过 TenndaAI 使用 75+ 多模型编程助手'
+---
+
+## 一、产品简介
+
+**OpenCode** 是一款开源、支持本地部署的 AI 编程助手，原生支持 **75+ 模型**与多种自定义供应商。通过 **TenndaAI**，你可以在 OpenCode 中统一使用 GPT、Claude、Gemini 等主流模型，无需为每家厂商重复配置。
+
+<CardGroup cols={2}>
+  <Card title="多模型统一接入" icon="layer-group">
+    一个供应商即可使用 GPT / Claude / Gemini / Qwen 全家族
+  </Card>
+  <Card title="本地部署友好" icon="house">
+    支持自建后端、配置文件覆盖，适合企业内网场景
+  </Card>
+  <Card title="Responses API 支持" icon="bolt">
+    通过 `apiCompatibility: "responses"` 适配 GPT Codex 系列
+  </Card>
+  <Card title="开源可控" icon="github">
+    全部开源，可审计、可定制
+  </Card>
+</CardGroup>
+
+**官网下载**：[https://opencode.ai/](https://opencode.ai/)
+
+## 二、快速配置（TenndaAI）
+
+### 1. 获取 API Key
+
+<Steps>
+  <Step title="登录控制台">
+    访问 [TenndaAI 控制台](https://client.tennda.ai) 注册或登录。
+  </Step>
+  <Step title="创建令牌">
+    进入 [密钥管理](https://client.tennda.ai/#/keys) → 创建新令牌 → 复制 `sk-xxxxxxxxxx` 格式的 Key。
+  </Step>
+</Steps>
+
+### 2. 在 OpenCode 中配置自定义供应商
+
+<Steps>
+  <Step title="打开供应商设置">
+    在 OpenCode 中进入 **服务器 / 提供商** 设置，选择 **添加自定义供应商**（Configure an OpenAI compatible provider）。
+  </Step>
+  <Step title="填写供应商信息">
+    | 字段 | 值 |
+    |------|-----|
+    | **提供商 ID** | `tennda`（小写、数字、连字符或下划线） |
+    | **显示名称** | `TenndaAI` |
+    | **基础 URL** | `https://api.tennda.ai/v1`（必须以 `/v1` 结尾） |
+    | **API 密钥** | 上一步复制的 TenndaAI Key |
+  </Step>
+  <Step title="添加模型">
+    在 **模型** 中添加你需要使用的模型 ID（如 `gpt-5.5`、`claude-sonnet-4-6`、`gemini-3.5-flash`）。模型 ID 必须与 [TenndaAI 模型列表](https://client.tennda.ai/#/models) 一致。
+  </Step>
+  <Step title="保存并使用">
+    保存后，在对话或设置中以 **`提供商ID/模型ID`** 的形式选择，如 `tennda/gpt-5.5`。
+  </Step>
+</Steps>
+
+<img src="/images/open-code1.png" alt="OpenCode 配置自定义供应商" />
+
+<img src="/images/open-code2.png" alt="OpenCode 提供商与 API 配置" />
+
+<img src="/images/open-code3.png" alt="OpenCode 模型配置" />
+
+### 3. 切换模型
+
+在对话或设置中选择已配置的供应商与模型（如 `tennda/gpt-5.5`）即可切换。
+
+<img src="/images/open-code4.png" alt="OpenCode 切换模型" />
+
+<Tip>
+- 若使用自建或备用 TenndaAI 服务，将 **基础 URL** 改为对应地址，如 `http://your-server:3003/v1`。
+- 默认模型可在项目或全局 `opencode.json` 中通过 `"model": "tennda/模型ID"` 设置。
+</Tip>
+
+## 三、部分模型需使用 Responses API（重要）
+
+部分 **Azure / OpenAI** 新模型**仅支持 Responses API**，不支持传统的 Chat Completions 接口。当 OpenCode 默认走 Chat Completions 时会报错：
+
+> The chatCompletion operation does not work with the specified model, **gpt-5.1-codex**. Please choose different model and try again.
+
+下图为该错误在 OpenCode 界面中的实际表现：
+
+<img src="/images/open-code8.png" alt="gpt-5.1-codex 使用 Chat Completions 时的报错界面" />
+
+### 1. 需要走 Responses API 的典型模型
+
+| 模型 ID / 系列 | 说明 |
+|----------------|------|
+| **gpt-5.1-codex** | GPT 5.1 Codex，编程 / 代码场景，仅支持 Responses API |
+| **gpt-5.2-codex** | GPT 5.2 Codex，同上 |
+| **computer-use-preview** | 与 Responses API 的 computer-use 工具配合使用的实验模型 |
+
+完整列表及更新以 **Azure / 厂商官方文档** 为准：
+
+- [Azure OpenAI Responses API](https://learn.microsoft.com/zh-cn/azure/ai-foundry/openai/how-to/responses)
+- [各模型支持的操作类型](https://go.microsoft.com/fwlink/?linkid=2197993)
+
+### 2. 在 OpenCode 中如何配置
+
+通过在配置文件中为对应模型添加 `apiCompatibility` 参数，即可让 OpenCode 对该模型使用 **Responses API**，无需改代码。
+
+<Steps>
+  <Step title="找到配置文件">
+    - **Windows**：`C:\Users\<用户名>\.config\opencode\opencode.jsonc`
+    - **macOS / Linux**：`~/.config/opencode/opencode.jsonc`
+
+    <img src="/images/open-code5.png" alt="部分模型需使用 Responses API 说明" />
+  </Step>
+  <Step title="在模型配置中添加参数">
+    在已配置的供应商（如指向 TenndaAI 或自建 API 的 custom provider）里，为需要走 Responses API 的模型（如 `gpt-5.1-codex`）增加 **`"apiCompatibility": "responses"`**：
+
+    <img src="/images/open-code6.png" alt="opencode.jsonc 中为 gpt-5.1-codex 配置 apiCompatibility: responses" />
+
+    ```jsonc
+    {
+      "$schema": "https://opencode.ai/config.json",
+      "disabled_providers": [
+        "backup_tennda"
+      ],
+      "provider": {
+        "backup_tennda": {
+          "name": "backup_tennda",
+          "npm": "@ai-sdk/openai-compatible",
+          "models": {
+            "gpt-5.2": {
+              "name": "gpt-5.2"
+            },
+            "gpt-5.1-codex": {
+              "name": "gpt-5.1-codex",
+              "apiCompatibility": "responses"
+            },
+            "gpt-5.1-chat": {
+              "name": "gpt-5.1-chat"
+            }
+          },
+          "options": {
+            "baseURL": "xxxxxxxx"
+          }
+        },
+        "backup_v1": {
+          "name": "backup_v1",
+          "npm": "@ai-sdk/openai-compatible",
+          "models": {
+            "gpt-5.2": {
+              "name": "gpt-5.2"
+            },
+            "gpt-5.1-codex": {
+              "name": "gpt-5.1-codex",
+              "apiCompatibility": "responses"
+            },
+            "gpt-5.1-chat": {
+              "name": "gpt-5.1-chat"
+            }
+          },
+          "options": {
+            "baseURL": "https://api.tennda.ai/v1"
+          }
+        }
+      }
+    }
+    ```
+
+    保存后在 OpenCode 中选择该供应商下的 `gpt-5.1-codex`（如 `backup_v1/gpt-5.1-codex`），请求会以 **Responses API** 格式发往对应 baseURL。
+  </Step>
+  <Step title="验证配置">
+    选用配置好的模型（如 `backup_v1/gpt-5.1-chat`）进行对话，若能正常响应即配置成功：
+
+    <img src="/images/open-code7.png" alt="OpenCode 配置成功后对话示例" />
+  </Step>
+</Steps>
+
+### 3. 配置场景小结
+
+| 场景 | 做法 |
+|------|------|
+| 使用 **gpt-5.1-codex / gpt-5.2-codex** 等仅支持 Responses 的模型 | 在 `opencode.jsonc` 的供应商 **models** 中为该模型添加 **`"apiCompatibility": "responses"`** |
+| 使用 **gpt-5.5、claude-sonnet-4-6、gemini-3.5-flash** 等常规模型 | 无需添加 `apiCompatibility`，按「快速配置」使用即可 |
+
+## 四、推荐模型（经 TenndaAI 使用）
+
+| 类型 | 模型 ID 示例 | 说明 |
+|------|---------------|------|
+| 旗舰编程 | `gpt-5.5`、`claude-opus-4-7` | 最强综合代码能力 |
+| Codex 系列 | `gpt-5.1-codex` | 需 Responses API（见上节） |
+| 通用对话 + 代码 | `gpt-5.4`、`claude-sonnet-4-6`、`claude-sonnet-4-5-20250929` | 直接使用，无需特殊配置 |
+| 高速低延迟 | `gemini-3.5-flash`、`claude-haiku-4-5-20251001` | 适合补全 / 工具调用 |
+| 性价比 | `gpt-5.4-mini`、`gemini-3.1-flash-lite-preview`、`qwen3-coder-plus` | 高并发批量场景 |
+
+完整模型 ID 以 [TenndaAI 模型列表](https://client.tennda.ai/#/models) 为准。
+
+### 配置成功示例
+
+下图为使用 TenndaAI 在 OpenCode 中正常对话的示例：
+
+<img src="/images/open-code7.png" alt="OpenCode 使用 TenndaAI 成功样例" />
+
+## 五、常见问题
+
+<AccordionGroup>
+  <Accordion title="提示「The chatCompletion operation does not work…」">
+    该模型只支持 Responses API。在 `opencode.jsonc` 对应模型上加入 `"apiCompatibility": "responses"`，详见第三节。
+  </Accordion>
+
+  <Accordion title="401 / API Key 无效">
+    1. 检查 Key 是否完整、是否有多余空格；
+    2. 在 [TenndaAI 控制台](https://client.tennda.ai/#/keys) 确认 Key 未被删除/禁用；
+    3. 确认账户余额充足。
+  </Accordion>
+
+  <Accordion title="404 / 找不到接口">
+    确认 Base URL 以 `/v1` 结尾：`https://api.tennda.ai/v1`。
+  </Accordion>
+
+  <Accordion title="选择的模型 ID 报错 not found">
+    模型 ID 必须与 [TenndaAI 模型列表](https://client.tennda.ai/#/models) 完全一致，注意大小写与版本后缀（如 `claude-sonnet-4-5-20250929` 而非 `claude-sonnet-4-5`）。
+  </Accordion>
+
+  <Accordion title="如何在团队中统一配置？">
+    将 `opencode.jsonc` 提交到项目仓库的 `.config/opencode/` 目录或项目根目录，团队成员通过自己的 API Key 接入即可。
+  </Accordion>
+</AccordionGroup>
+
+## 六、参考链接
+
+- OpenCode 官网与下载：[https://opencode.ai/](https://opencode.ai/)
+- OpenCode 配置与模型说明：[Models](https://opencode.ai/docs/models)、[Providers](https://opencode.ai/docs/providers)
+- TenndaAI 控制台：[https://client.tennda.ai](https://client.tennda.ai)
+- 模型广场：[https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)

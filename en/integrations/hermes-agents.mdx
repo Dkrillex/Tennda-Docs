@@ -1,0 +1,225 @@
+---
+title: 'Hermes Agents'
+description: 'Hermes Agent — self-hosted, self-learning AI agent integration guide (TenndaAI)'
+---
+
+## 1. Overview
+
+**Hermes Agent** is an open-source (MIT) self-hosted AI agent built by [Nous Research](https://nousresearch.com/) — the agent that **grows with you**. It is neither a coding copilot tethered to an IDE, nor a chatbot wrapper around a single API. It runs on your own server, remembers what it learns, and becomes more capable the longer it runs.
+
+With **TenndaAI** (OpenAI-compatible API) one key gives Hermes access to GPT, Claude, Gemini, DeepSeek and 400+ other leading models.
+
+<CardGroup cols={2}>
+  <Card title="Persistent Memory" icon="brain">
+    Remembers projects and solutions across sessions
+  </Card>
+  <Card title="Auto Skill Synthesis" icon="wand-magic-sparkles">
+    Generates reusable Skills from experience
+  </Card>
+  <Card title="Multi-platform Reach" icon="message-circle">
+    Telegram / Discord / Slack / WhatsApp / Signal / Email / CLI
+  </Card>
+  <Card title="Real Sandboxing" icon="shield">
+    Local / Docker / SSH / Singularity / Modal backends
+  </Card>
+</CardGroup>
+
+<Info>
+Website: [hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com) ｜ Repo: [github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) ｜ License: MIT
+</Info>
+
+## 2. Core Capabilities
+
+- **Persistent memory** — local vector store retains conversations and project knowledge
+- **Learning loop** — successful solutions are crystallised into reusable Skills
+- **Scheduled automations** — describe cron jobs in natural language
+- **Delegated subagents** — isolated terminals & Python RPC, no context pollution
+- **Full web control** — browser automation, vision, image generation, TTS
+- **Real sandboxes** — local, Docker, SSH, Singularity, Modal
+
+## 3. Prerequisites
+
+- Create an API key in the [TenndaAI console](https://client.tennda.ai/#/keys)
+- A server or workstation: Linux / macOS / WSL2 / Android (Termux)
+- Windows users: PowerShell (early beta)
+
+<Warning>
+Hermes Agent **requires a model with ≥ 64K tokens of context**. Claude, GPT, Gemini and DeepSeek all qualify.
+</Warning>
+
+## 4. Install
+
+One command handles everything:
+
+<CodeGroup>
+```bash Linux / macOS / WSL2 / Termux
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+source ~/.zshrc   # or source ~/.bashrc
+```
+
+```powershell Windows PowerShell (beta)
+irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1 | iex
+```
+</CodeGroup>
+
+All dependencies are placed under `~/.hermes/hermes-agent`. No manual `pip install` needed.
+
+## 5. Configure TenndaAI
+
+Hermes Agent connects to any OpenAI-compatible service via its **Custom Endpoint** path.
+
+### Option A — Interactive CLI (recommended)
+
+```bash
+hermes model
+```
+
+Pick **Custom endpoint (self-hosted / VLLM / etc.)** and fill in:
+
+| Field | Value |
+|-------|-------|
+| API Base URL | `https://api.tennda.ai/v1` |
+| API Key | Your TenndaAI key (`sk-...`) |
+| Model name | `claude-sonnet-4-6` (or any TenndaAI model ID) |
+
+Settings persist to `~/.hermes/config.yaml`.
+
+### Option B — Edit config.yaml manually
+
+Open `~/.hermes/config.yaml` and add:
+
+```yaml
+model:
+  provider: custom
+  model: claude-sonnet-4-6
+  base_url: https://api.tennda.ai/v1
+  api_key: sk-your-tenndai-key
+```
+
+<Tip>
+When `base_url` is set, Hermes ignores `provider` and calls the endpoint directly. The API key is read from `model.api_key`, falling back to the `OPENAI_API_KEY` environment variable.
+</Tip>
+
+### Option C — Environment variables
+
+```bash
+export OPENAI_BASE_URL=https://api.tennda.ai/v1
+export OPENAI_API_KEY=sk-your-tenndai-key
+hermes model   # the Custom Endpoint wizard will pick them up
+```
+
+### Option D — Multiple named endpoints
+
+Declare several endpoints in advance and switch at runtime:
+
+```yaml
+custom_providers:
+  - name: tennda
+    base_url: https://api.tennda.ai/v1
+    key_env: TENNDA_API_KEY
+    api_mode: chat_completions
+  - name: tennda-anthropic
+    base_url: https://api.tennda.ai/anthropic
+    key_env: TENNDA_API_KEY
+    api_mode: anthropic_messages
+```
+
+Switch with `hermes model`, or set `model.provider: tennda` directly.
+
+## 6. Run & Verify
+
+```bash
+hermes setup     # first-run wizard (skip if already configured)
+hermes doctor    # health check: validates key & /models
+hermes start     # launch the gateway
+```
+
+You can now chat with Hermes from any connected channel — CLI, Telegram, Discord, Slack, etc.
+
+## 7. Recommended Models
+
+| Use case | Model ID | Notes |
+|----------|----------|-------|
+| Complex tasks | `claude-sonnet-4-6` | Best tool calling & long tasks |
+| Coding | `deepseek-v3-2-251201` | Great code, great price |
+| Daily chat | `gpt-5.5` | Strong all-rounder |
+| Long context | `gemini-3.1-pro-preview` | Massive context window |
+| Low latency | `claude-haiku-4-5-20251001` | Fast responses |
+| Heavy reasoning | `claude-opus-4-7` | Complex reasoning, algorithms / logic |
+
+Browse all models in the [TenndaAI marketplace](https://client.tennda.ai/#/models).
+
+## 8. Messaging Channels
+
+| Platform | Config location |
+|----------|-----------------|
+| Telegram | `channels.telegram.token` |
+| Discord | `channels.discord.bot_token` |
+| Slack | `channels.slack.bot_token` |
+| WhatsApp | QR scan |
+| Signal | linked-device QR |
+| Email | SMTP / IMAP |
+| CLI | `hermes chat` |
+
+## 9. Extensions
+
+### Skills
+
+```bash
+hermes skills search kubernetes
+hermes skills install openai/skills/k8s
+```
+
+Hermes **automatically synthesises Skills from your sessions** and reuses them later — the feature that sets it apart from most agent frameworks.
+
+### MCP servers
+
+Add MCP tools to `~/.hermes/config.yaml`:
+
+```yaml
+mcp_servers:
+  github:
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_xxx"
+```
+
+### Sandbox backends
+
+```yaml
+sandbox:
+  backend: docker   # local / docker / ssh / singularity / modal
+```
+
+## 10. Commands
+
+| Command | Purpose |
+|---------|---------|
+| `hermes setup` | First-run wizard |
+| `hermes model` | Choose / switch provider & model |
+| `hermes doctor` | Health check |
+| `hermes start` / `stop` / `restart` | Control the gateway |
+| `hermes chat` | Terminal chat |
+| `hermes skills` | Manage skills |
+| `hermes logs --follow` | Tail logs |
+| `hermes update` | Upgrade |
+
+## 11. Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="401 / invalid API key">
+    - Verify `api_key` in `~/.hermes/config.yaml` has no stray characters
+    - When several `*_API_KEY` env vars exist, remember Hermes scopes each key to its own base URL
+  </Accordion>
+  <Accordion title="404 / endpoint not found">
+    - `chat_completions` mode: `base_url` must end with `/v1`
+    - For native Claude protocol use `https://api.tennda.ai/anthropic` with `api_mode: anthropic_messages`
+  </Accordion>
+  <Accordion title="Context too short">
+    Hermes requires ≥ 64K context. Use `claude-sonnet-4-6`, `openai/gpt-5.4`, `gemini-3.1-pro-preview`, etc.
+  </Accordion>
+  <Accordion title="Config changes ignored">
+    `config.yaml` is the single source of truth. If old `OPENAI_BASE_URL` lingers in `.env`, run `hermes setup` to trigger the migration.
+  </Accordion>
+</AccordionGroup>

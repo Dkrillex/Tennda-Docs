@@ -1,0 +1,65 @@
+---
+title: 'Rerank'
+description: 'Rerank documents by relevance to a query'
+api: 'POST https://api.tennda.ai/v1/rerank'
+---
+
+## Introduction
+
+Rerank a list of candidate documents by relevance to a query. Commonly used in RAG and knowledge-base search.
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request parameters
+
+<ParamField body="model" type="string" required>
+  Rerank model, e.g. `rerank-english-v2.0`
+</ParamField>
+
+<ParamField body="query" type="string" required>
+  Query text
+</ParamField>
+
+<ParamField body="documents" type="array" required>
+  Documents to rerank (strings or objects)
+</ParamField>
+
+<ParamField body="top_n" type="integer">
+  Return top N results
+</ParamField>
+
+<ParamField body="return_documents" type="boolean" default="false">
+  Include document text in results
+</ParamField>
+
+## Request example
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/rerank" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "rerank-english-v2.0",
+    "query": "What is a vector database?",
+    "documents": [
+      "Vector databases store and search embeddings",
+      "Today is sunny",
+      "RAG pipelines often use reranking"
+    ],
+    "top_n": 2,
+    "return_documents": true
+  }'
+```
+
+## Common parameters
+
+- **query**: User question or search query  
+- **documents**: Candidate passages  
+- **top_n**: Limit to top N hits  
+- **return_documents**: Include source text when `true`  
+
+The `results` array contains `index` and `relevance_score`, sorted by score.

@@ -1,0 +1,270 @@
+---
+title: 'Claude Code'
+description: 'Claude Code client integration guide: one-stop access to Claude / Kimi / GPT via TenndaAI'
+---
+
+## 1. Overview
+
+**Claude Code** is Anthropic's official terminal AI coding client. Through **TenndaAI** (Anthropic-compatible API) you get:
+
+<CardGroup cols={2}>
+  <Card title="Multi-vendor access" icon="plug">
+    Use the full Claude family, Kimi K2, GPT and more behind one endpoint
+  </Card>
+  <Card title="Dual-thread model" icon="microchip">
+    Heavy tasks on the main thread, lightweight ones on the haiku thread
+  </Card>
+  <Card title="No subscription" icon="wallet">
+    Pay per token — no Claude Pro required
+  </Card>
+  <Card title="Stable globally" icon="globe">
+    Distributed nodes with automatic failover
+  </Card>
+</CardGroup>
+
+## 2. Install Node.js (skip if installed)
+
+Make sure Node.js is **≥ 18.0**.
+
+<Tabs>
+  <Tab title="Windows">
+    Download: [https://nodejs.org/dist/v22.18.0/node-v22.18.0-x64.msi](https://nodejs.org/dist/v22.18.0/node-v22.18.0-x64.msi)
+  </Tab>
+  <Tab title="macOS">
+    ```bash
+    sudo xcode-select --install
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    brew install node
+    node --version
+    ```
+  </Tab>
+  <Tab title="Ubuntu / Debian">
+    ```bash
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo bash -
+    sudo apt-get install -y nodejs
+    node --version
+    ```
+  </Tab>
+</Tabs>
+
+### Uninstall other proxy clients (optional)
+
+If you previously installed another forked `@anthropic-ai/claude-code`, clean it up first:
+
+```bash
+# Check installation locations
+npm ls @anthropic-ai/claude-code
+npm ls -g @anthropic-ai/claude-code
+
+# Uninstall
+npm uninstall @anthropic-ai/claude-code
+npm uninstall -g @anthropic-ai/claude-code
+```
+
+## 3. Install Claude Code
+
+<Steps>
+  <Step title="Global install">
+    ```bash
+    npm install -g @anthropic-ai/claude-code
+    ```
+  </Step>
+  <Step title="Verify install">
+    ```bash
+    claude --version
+    ```
+  </Step>
+</Steps>
+
+## 4. Get your TenndaAI key
+
+<Steps>
+  <Step title="Sign in">
+    Go to the [TenndaAI console](https://client.tennda.ai).
+  </Step>
+  <Step title="Create a key">
+    Open [API Keys](https://client.tennda.ai/#/keys) → create a new token.
+  </Step>
+  <Step title="Note the info">
+    ```
+    base_url = "https://api.tennda.ai"
+    api_key  = "sk-zbTYx*******************************fceTvn5"
+    ```
+
+    <Warning>
+    Claude Code's `ANTHROPIC_BASE_URL` does **not** need a `/v1` suffix — use `https://api.tennda.ai` directly.
+    </Warning>
+  </Step>
+</Steps>
+
+## 5. Configure Environment Variables
+
+### 5.1 Basic example (single model)
+
+<Tabs>
+  <Tab title="Mac / Linux">
+    ```bash
+    export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    export ANTHROPIC_MODEL="kimi-k2-250905"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows CMD">
+    ```cmd
+    set ANTHROPIC_BASE_URL=https://api.tennda.ai
+    set ANTHROPIC_AUTH_TOKEN=sk-zbTYx*******************************fceTvn5
+    set ANTHROPIC_MODEL=kimi-k2-250905
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    $env:ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    $env:ANTHROPIC_MODEL="kimi-k2-250905"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+</Tabs>
+
+### 5.2 Dual-thread architecture
+
+By default Claude Code uses a **dual-thread** model architecture that saves cost:
+
+| Thread | Env var | Purpose |
+|--------|---------|---------|
+| **Main** | `ANTHROPIC_MODEL` | Primary codegen, conversation, complex tasks |
+| **Haiku** | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | File watching, linter checks, completion, background jobs |
+
+<Tip>
+**Typical pairing**: main thread on `claude-opus-4-7` or `claude-sonnet-4-6` for heavy lifting, haiku thread on `claude-haiku-4-5-20251001` for background work — high quality at much lower token cost.
+</Tip>
+
+### 5.3 Recommended config (dual model)
+
+<Tabs>
+  <Tab title="Mac / Linux">
+    ```bash
+    export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    export ANTHROPIC_MODEL="claude-sonnet-4-6"
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5-20251001"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows CMD">
+    ```cmd
+    set ANTHROPIC_BASE_URL=https://api.tennda.ai
+    set ANTHROPIC_AUTH_TOKEN=sk-zbTYx*******************************fceTvn5
+    set ANTHROPIC_MODEL=claude-sonnet-4-6
+    set ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku-4-5-20251001
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    $env:ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    $env:ANTHROPIC_MODEL="claude-sonnet-4-6"
+    $env:ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5-20251001"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+</Tabs>
+
+### 5.4 Single model (optional)
+
+If you only want one model, there are two options:
+
+**Option A — set both env vars to the same model**
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+export ANTHROPIC_MODEL="kimi-k2-250905"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="kimi-k2-250905"
+cd your-project-folder
+claude
+```
+
+**Option B — switch in-session**
+
+Keep the dual-model config, start Claude Code, then in the interactive UI:
+
+```
+/model haiku
+```
+
+The main thread switches to the model from `ANTHROPIC_DEFAULT_HAIKU_MODEL`.
+
+## 6. Recommended Combinations (via TenndaAI)
+
+| Scenario | Main (`ANTHROPIC_MODEL`) | Haiku (`ANTHROPIC_DEFAULT_HAIKU_MODEL`) |
+|----------|--------------------------|----------------------------------------|
+| **Production** (top) | `claude-opus-4-7` | `claude-haiku-4-5-20251001` |
+| **Daily dev** (recommended) | `claude-sonnet-4-6` | `claude-haiku-4-5-20251001` |
+| **Cost-optimized** | `kimi-k2-250905` | `claude-haiku-4-5-20251001` |
+| **Long context** | `claude-sonnet-4-5-20250929` (200K) | `claude-haiku-4-5-20251001` |
+| **Quick smoke-test** | `claude-haiku-4-5-20251001` | `claude-haiku-4-5-20251001` |
+
+See full IDs in the [TenndaAI model catalog](https://client.tennda.ai/#/models).
+
+## 7. FAQ
+
+<AccordionGroup>
+  <Accordion title="401 / invalid API key">
+    1. Check `ANTHROPIC_AUTH_TOKEN` for stray whitespace or newlines.
+    2. Confirm the key is active in the [TenndaAI console](https://client.tennda.ai/#/keys).
+    3. Ensure your balance is positive.
+  </Accordion>
+
+  <Accordion title="404 / wrong endpoint">
+    For Claude Code, **do not** append `/v1` to `ANTHROPIC_BASE_URL`. Use `https://api.tennda.ai` (Anthropic protocol differs from OpenAI).
+  </Accordion>
+
+  <Accordion title="How to switch models inside Claude Code?">
+    In the interactive UI:
+
+    ```
+    /model              # show current model
+    /model haiku        # switch to ANTHROPIC_DEFAULT_HAIKU_MODEL
+    /model sonnet       # alias supported in some versions
+    ```
+
+    Or exit, change env vars, and re-launch.
+  </Accordion>
+
+  <Accordion title="`model not found` error">
+    Use the **full ID** from the [TenndaAI model list](https://client.tennda.ai/#/models), e.g.:
+
+    - ✅ `claude-sonnet-4-5-20250929`
+    - ❌ `claude-sonnet-4-5`
+
+    The version suffix is required.
+  </Accordion>
+
+  <Accordion title="How to reduce token cost?">
+    1. Prefer the **dual-model** setup with Haiku as the background thread.
+    2. Use `--max-turns` and similar flags to cap conversation length.
+    3. Maintain project memory under `.claude/` to avoid repeating context.
+    4. Use `/clear` to drop stale context.
+  </Accordion>
+
+  <Accordion title="Team-wide config?">
+    Put env vars into a project `.env`, your shell profile, or `direnv`. Each engineer only swaps in their own `ANTHROPIC_AUTH_TOKEN`.
+  </Accordion>
+</AccordionGroup>
+
+## 8. References
+
+- Claude Code official docs: [https://docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code)
+- TenndaAI console: [https://client.tennda.ai](https://client.tennda.ai)
+- Model catalog: [https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)
+- API keys: [https://client.tennda.ai/#/keys](https://client.tennda.ai/#/keys)

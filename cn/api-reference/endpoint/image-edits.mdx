@@ -1,0 +1,86 @@
+---
+title: '图像编辑（Edits）'
+description: 'OpenAI 兼容 POST /v1/images/edits'
+api: 'POST https://api.tennda.ai/v1/images/edits'
+---
+
+## 简介
+
+`POST /v1/images/edits` 为 OpenAI 兼容的图像编辑端点，在给定原图与提示词下生成编辑或扩展结果。适用于：
+
+- **通义千问**：`qwen-image-edit-plus`（见 [通义千问（图像）](/cn/api-reference/endpoint/qwen-image)）
+- **GPT-Image-2**：支持 JSON（`image` URL/Base64）或 `multipart/form-data`（`image[]` 文件上传）
+
+文生图仍使用 `POST /v1/images/generations`。GPT-Image-2 也可仅通过 generations 携带 `image` 字段完成图生图，见 [GPT-Image-2](/cn/api-reference/endpoint/gpt-image-2)。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求示例
+
+<Tabs>
+  <Tab title="GPT-Image-2（JSON）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gpt-image-2",
+        "prompt": "将背景改为海滩日落",
+        "image": "https://example.com/photo.png",
+        "size": "1024x1024",
+        "quality": "high"
+      }'
+    ```
+  </Tab>
+  <Tab title="GPT-Image-2（multipart）">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -F "model=gpt-image-2" \
+      -F "prompt=将背景改为海滩日落" \
+      -F "image[]=@photo.png" \
+      -F "size=1024x1024"
+    ```
+  </Tab>
+  <Tab title="通义千问">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/images/edits" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "qwen-image-edit-plus",
+        "input": {
+          "messages": [
+            {
+              "role": "user",
+              "content": [
+                {"image": "https://example.com/input.webp"},
+                {"text": "把画面改成冬季雪景"}
+              ]
+            }
+          ]
+        },
+        "parameters": {"n": 1}
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+**GPT-Image-2**
+
+- **prompt**：编辑描述  
+- **image**：URL、Base64 或 multipart 文件（可多张）  
+- **size** / **quality** / **n**：与 generations 类似  
+
+**通义千问**
+
+- **input.messages**：含 `image` + `text` 的 Qwen 结构  
+- **parameters.n**：输出数量  
+
+响应格式因模型而异（`b64_json` 或 `url`）。详见 [图片生成](/cn/api-reference/endpoint/image-generation)。

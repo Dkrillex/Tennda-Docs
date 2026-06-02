@@ -1,0 +1,281 @@
+---
+title: 'List Models'
+api: 'GET https://api.tennda.ai/v1/models'
+description: 'Retrieve the list of models available to your API key, returned in OpenAI, Anthropic, or Gemini format.'
+---
+
+## Introduction
+
+Retrieve all models available to your API key. The **same endpoint** `https://api.tennda.ai/v1/models` automatically returns the response in the appropriate platform's native format based on request headers — no need to switch URLs or maintain multiple integrations.
+
+<Card title="Auto Format Detection" icon="wand-magic-sparkles">
+  TenndaAI inspects the auth headers to detect the client type and returns the response using the **official OpenAI / Anthropic / Gemini ListModels schema**, so native SDKs work out of the box.
+</Card>
+
+## Format Detection Rules
+
+| Request signature | Response format |
+|-------------------|-----------------|
+| `x-api-key` + `anthropic-version` headers | **Anthropic** |
+| `x-goog-api-key` header or `?key=xxx` query param | **Gemini** |
+| `Authorization: Bearer ...` (default) | **OpenAI** |
+
+<Note>
+When multiple credentials are present, the **priority** is: Anthropic > Gemini > OpenAI.
+</Note>
+
+## Authentication
+
+<ParamField header="Authorization" type="string">
+  OpenAI-compatible authentication, format: `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+<ParamField header="x-api-key" type="string">
+  Anthropic authentication — the raw API key (no `Bearer` prefix)
+</ParamField>
+
+<ParamField header="anthropic-version" type="string">
+  Anthropic API version, e.g. `2023-06-01`
+</ParamField>
+
+<ParamField header="x-goog-api-key" type="string">
+  Gemini authentication — the raw API key
+</ParamField>
+
+## Request Examples
+
+<Tabs>
+  <Tab title="OpenAI format">
+    <CodeGroup>
+    ```bash cURL
+    curl https://api.tennda.ai/v1/models \
+      -H "Authorization: Bearer sk-XyLy**************************mIqSt"
+    ```
+
+    ```python Python
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key="sk-XyLy**************************mIqSt",
+        base_url="https://api.tennda.ai/v1"
+    )
+
+    models = client.models.list()
+
+    for model in models.data:
+        print(f"{model.id}  ({model.owned_by})")
+    ```
+
+    ```javascript Node.js
+    import OpenAI from 'openai';
+
+    const client = new OpenAI({
+      apiKey: 'sk-XyLy**************************mIqSt',
+      baseURL: 'https://api.tennda.ai/v1'
+    });
+
+    const models = await client.models.list();
+    models.data.forEach(m => console.log(`${m.id}  (${m.owned_by})`));
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Anthropic format">
+    <CodeGroup>
+    ```bash cURL
+    curl https://api.tennda.ai/v1/models \
+      -H "x-api-key: sk-XyLy**************************mIqSt" \
+      -H "anthropic-version: 2023-06-01"
+    ```
+
+    ```python Python
+    import anthropic
+
+    client = anthropic.Anthropic(
+        api_key="sk-XyLy**************************mIqSt",
+        base_url="https://api.tennda.ai"
+    )
+
+    for model in client.models.list().data:
+        print(f"{model.id}  ({model.display_name})")
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Gemini format">
+    <CodeGroup>
+    ```bash cURL
+    curl "https://api.tennda.ai/v1/models" \
+      -H "x-goog-api-key: sk-XyLy**************************mIqSt"
+    ```
+
+    ```python Python
+    import requests
+
+    resp = requests.get(
+        "https://api.tennda.ai/v1/models",
+        headers={"x-goog-api-key": "sk-XyLy**************************mIqSt"}
+    )
+
+    for model in resp.json()["models"]:
+        print(f"{model['name']}  ({model['displayName']})")
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## Response Examples
+
+<Tabs>
+  <Tab title="OpenAI format">
+    ```json
+    {
+      "object": "list",
+      "data": [
+        {
+          "id": "gpt-5.4",
+          "object": "model",
+          "created": 1715232000,
+          "owned_by": "openai"
+        },
+        {
+          "id": "claude-sonnet-4-5-20250929",
+          "object": "model",
+          "created": 1743465600,
+          "owned_by": "anthropic"
+        },
+        {
+          "id": "gemini-2.5-pro",
+          "object": "model",
+          "created": 1746057600,
+          "owned_by": "google"
+        }
+      ]
+    }
+    ```
+  </Tab>
+
+  <Tab title="Anthropic format">
+    ```json
+    {
+      "data": [
+        {
+          "type": "model",
+          "id": "claude-opus-4-5-20251101",
+          "display_name": "Claude Opus 4.5",
+          "created_at": "2025-11-01T00:00:00Z"
+        },
+        {
+          "type": "model",
+          "id": "claude-sonnet-4-5-20250929",
+          "display_name": "Claude Sonnet 4.5",
+          "created_at": "2025-09-29T00:00:00Z"
+        }
+      ],
+      "has_more": false,
+      "first_id": "claude-opus-4-5-20251101",
+      "last_id": "claude-sonnet-4-5-20250929"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Gemini format">
+    ```json
+    {
+      "models": [
+        {
+          "name": "models/gemini-2.5-pro",
+          "version": "001",
+          "displayName": "Gemini 2.5 Pro",
+          "description": "Google's flagship multimodal reasoning model",
+          "inputTokenLimit": 1048576,
+          "outputTokenLimit": 8192,
+          "supportedGenerationMethods": ["generateContent", "countTokens"]
+        },
+        {
+          "name": "models/gemini-3.1-pro-preview",
+          "version": "preview",
+          "displayName": "Gemini 3.1 Pro Preview",
+          "inputTokenLimit": 1048576,
+          "outputTokenLimit": 8192,
+          "supportedGenerationMethods": ["generateContent", "countTokens"]
+        }
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Response Fields
+
+### OpenAI format
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `object` | string | Always `list` |
+| `data` | array | Model list |
+| `data[].id` | string | Model identifier; use this as the `model` parameter in requests |
+| `data[].object` | string | Always `model` |
+| `data[].created` | integer | Release timestamp (Unix seconds) |
+| `data[].owned_by` | string | Provider, e.g. `openai`, `anthropic`, `google` |
+
+### Anthropic format
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `data` | array | Model list |
+| `data[].type` | string | Always `model` |
+| `data[].id` | string | Model identifier |
+| `data[].display_name` | string | Human-friendly name |
+| `data[].created_at` | string | Release time (ISO 8601 string) |
+| `has_more` | boolean | Whether more pages exist |
+| `first_id` / `last_id` | string | Pagination cursors |
+
+### Gemini format
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `models` | array | Model list |
+| `models[].name` | string | Resource name, format `models/{id}` |
+| `models[].displayName` | string | Human-friendly name |
+| `models[].description` | string | Model description |
+| `models[].inputTokenLimit` | integer | Maximum input tokens |
+| `models[].outputTokenLimit` | integer | Maximum output tokens |
+| `models[].supportedGenerationMethods` | array | Methods supported by this model |
+
+## Error Handling
+
+| Status | Meaning | Suggested action |
+|--------|---------|------------------|
+| `200` | Success | — |
+| `401` | API key invalid or expired | Verify the key; ensure it has not been disabled |
+| `429` | Too many requests | Back off and retry; contact BD to raise your quota |
+| `500` | Internal server error | Retry briefly; contact support if it persists |
+
+Error response example (OpenAI format):
+
+```json
+{
+  "error": {
+    "message": "Invalid API key",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key"
+  }
+}
+```
+
+## Best Practices
+
+<Tip>
+- **Cache the result** — the model list changes infrequently; caching for 1+ hour avoids unnecessary requests.
+- **Validate at startup** — call this endpoint once at boot to confirm the key works and the target model is available.
+- **Permission-aware** — the returned list varies with the API key's entitlements; different keys may see different models.
+- **Drop-in SDKs** — when using the official OpenAI / Anthropic / Google SDKs, simply point the base URL to `https://api.tennda.ai`; no extra adapters required.
+</Tip>
+
+<Note>
+Python example dependencies:
+- OpenAI format: `pip install openai`
+- Anthropic format: `pip install anthropic`
+- Gemini format: `pip install requests`
+</Note>

@@ -1,0 +1,46 @@
+---
+title: '创建素材组（真人）'
+description: 'POST /v1/visual-validate/session（liveness_face）'
+api: 'POST https://api.tennda.ai/v1/visual-validate/session'
+---
+
+## 简介
+
+为真人出镜素材创建 `liveness_face` 素材组并返回 H5 核验链接。用户完成核验后素材方可用于 Seedance 2.0 生成。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="name" type="string" required>
+  素材组名称
+</ParamField>
+
+<ParamField body="description" type="string">
+  描述
+</ParamField>
+
+<ParamField body="callback_url" type="string">
+  业务回调地址（可选）
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "真人角色A",
+    "description": "出镜核验"
+  }'
+```
+
+## 响应说明
+
+返回 `group_id`、`validate_url` 等字段。引导用户在 H5 完成核验后，用 [列出素材组](/cn/api-reference/endpoint/seedance-2.0/list-asset-groups)（`group_type=liveness_face`）与 [查询单个素材](/cn/api-reference/endpoint/seedance-2.0/get-asset) 确认状态。

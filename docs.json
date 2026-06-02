@@ -1,0 +1,265 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "TenndaAI Documentation",
+  "colors": {
+    "primary": "#00AEEF",
+    "light": "#89CFF0",
+    "dark": "#0054A6"
+  },
+  "background": {
+    "color": {
+      "light": "#FFFFFF",
+      "dark": "#0A1628"
+    }
+  },
+  "favicon": "/logo/favicon.png",
+  "navigation": {
+    "languages": [
+      {
+        "language": "cn",
+        "tabs": [
+          {
+            "tab": "首页",
+            "groups": [
+              {
+                "group": "文档",
+                "pages": ["cn/index", "cn/changelog"]
+              }
+            ]
+          },
+          {
+            "tab": "API 参考",
+            "groups": [
+            {
+              "group": "快速开始与基础",
+              "pages": [
+                "cn/api-reference/index",
+                "cn/api-reference/models",
+                "cn/api-reference/openai-sdk",
+                "cn/api-reference/endpoint/list-models"
+              ]
+            },
+            {
+              "group": "文本与对话生成",
+              "pages": [
+                "cn/api-reference/endpoint/messages",
+                "cn/api-reference/endpoint/gemini-native",
+                "cn/api-reference/endpoint/responses-openai",
+                "cn/api-reference/endpoint/chat-openai"
+              ]
+            },
+            {
+              "group": "音频处理与内容安全",
+              "pages": [
+                "cn/api-reference/endpoint/audio",
+                "cn/api-reference/endpoint/moderations",
+                "cn/api-reference/endpoint/realtime"
+              ]
+            },
+            {
+              "group": "图像生成与编辑",
+              "pages": [
+                "cn/api-reference/endpoint/image-generation",
+                "cn/api-reference/endpoint/gemini-image",
+                "cn/api-reference/endpoint/gpt-image-2",
+                "cn/api-reference/endpoint/qwen-image",
+                "cn/api-reference/endpoint/image-edits"
+              ]
+            },
+            {
+              "group": "视频生成与任务管理",
+              "pages": [
+                "cn/api-reference/endpoint/video-generation",
+                "cn/api-reference/endpoint/submit-video-task",
+                "cn/api-reference/endpoint/query-video-task",
+                "cn/api-reference/endpoint/wan2.7",
+                "cn/api-reference/endpoint/happyhorse",
+                {
+                  "group": "Seedance 2.0",
+                  "pages": [
+                    "cn/api-reference/endpoint/seedance-2.0/create-video-generation",
+                    "cn/api-reference/endpoint/seedance-2.0/get-video-generation",
+                    "cn/api-reference/endpoint/seedance-2.0/create-asset-group",
+                    "cn/api-reference/endpoint/seedance-2.0/list-asset-groups",
+                    "cn/api-reference/endpoint/seedance-2.0/delete-asset-group",
+                    "cn/api-reference/endpoint/seedance-2.0/create-asset",
+                    "cn/api-reference/endpoint/seedance-2.0/list-assets",
+                    "cn/api-reference/endpoint/seedance-2.0/get-asset",
+                    "cn/api-reference/endpoint/seedance-2.0/delete-asset",
+                    "cn/api-reference/endpoint/seedance-2.0/create-visual-validate-session",
+                    "cn/api-reference/endpoint/seedance-2.0/get-moderation-result"
+                  ]
+                }
+              ]
+            }
+            ]
+          },
+          {
+            "tab": "开发工具&平台",
+            "groups": [
+              {
+                "group": "对话型 AI",
+                "pages": ["cn/integrations/cherry-studio"]
+              },
+              {
+                "group": "编程开发",
+                "pages": ["cn/integrations/cc-switch", "cn/integrations/codex", "cn/integrations/trae", "cn/integrations/open-code", "cn/integrations/claude-code", "cn/integrations/gemini-cli", "cn/integrations/claude-code-vscode", "cn/integrations/kilo-code-vscode"]
+              },
+              {
+                "group": "AI Agent",
+                "pages": ["cn/integrations/openclaw", "cn/integrations/hermes-agents"]
+              },
+              {
+                "group": "技术工程",
+                "pages": ["cn/integrations/langchain", "cn/integrations/dify"]
+              },
+              {
+                "group": "翻译场景",
+                "pages": ["cn/integrations/immersive-translate"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "en",
+        "tabs": [
+          {
+            "tab": "Home",
+            "groups": [
+              {
+                "group": "Documentation",
+                "pages": ["en/index", "en/changelog"]
+              }
+            ]
+          },
+          {
+            "tab": "API reference",
+            "groups": [
+            {
+              "group": "API documentation",
+              "pages": [
+                "en/api-reference/index",
+                "en/api-reference/models",
+                "en/api-reference/openai-sdk",
+                "en/api-reference/endpoint/list-models"
+              ]
+            },
+            {
+              "group": "Chat & text",
+              "pages": [
+                "en/api-reference/endpoint/messages",
+                "en/api-reference/endpoint/gemini-native",
+                "en/api-reference/endpoint/responses-openai",
+                "en/api-reference/endpoint/chat-openai"
+              ]
+            },
+            {
+              "group": "Safety & audio",
+              "pages": [
+                "en/api-reference/endpoint/moderations",
+                "en/api-reference/endpoint/audio",
+                "en/api-reference/endpoint/realtime"
+              ]
+            },
+            {
+              "group": "Image Series",
+              "pages": [
+                "en/api-reference/endpoint/image-generation",
+                "en/api-reference/endpoint/nano-banana",
+                "en/api-reference/endpoint/gemini-image",
+                "en/api-reference/endpoint/gpt-image-2",
+                "en/api-reference/endpoint/qwen-image",
+                "en/api-reference/endpoint/image-edits"
+              ]
+            },
+            {
+              "group": "Video Series",
+              "pages": [
+                "en/api-reference/endpoint/video-generation",
+                "en/api-reference/endpoint/submit-video-task",
+                "en/api-reference/endpoint/query-video-task",
+                "en/api-reference/endpoint/wan2.7",
+                "en/api-reference/endpoint/happyhorse",
+                {
+                  "group": "Seedance 2.0",
+                  "pages": [
+                    "en/api-reference/endpoint/seedance-2.0/create-video-generation",
+                    "en/api-reference/endpoint/seedance-2.0/get-video-generation",
+                    "en/api-reference/endpoint/seedance-2.0/create-asset-group",
+                    "en/api-reference/endpoint/seedance-2.0/list-asset-groups",
+                    "en/api-reference/endpoint/seedance-2.0/delete-asset-group",
+                    "en/api-reference/endpoint/seedance-2.0/create-asset",
+                    "en/api-reference/endpoint/seedance-2.0/list-assets",
+                    "en/api-reference/endpoint/seedance-2.0/get-asset",
+                    "en/api-reference/endpoint/seedance-2.0/delete-asset",
+                    "en/api-reference/endpoint/seedance-2.0/create-visual-validate-session",
+                    "en/api-reference/endpoint/seedance-2.0/get-moderation-result"
+                  ]
+                }
+              ]
+            }
+            ]
+          },
+          {
+            "tab": "Dev Tools & Platforms",
+            "groups": [
+              {
+                "group": "Chat AI",
+                "pages": ["en/integrations/cherry-studio"]
+              },
+              {
+                "group": "Coding",
+                "pages": ["en/integrations/cc-switch", "en/integrations/codex", "en/integrations/trae", "en/integrations/open-code", "en/integrations/claude-code", "en/integrations/gemini-cli", "en/integrations/claude-code-vscode", "en/integrations/kilo-code-vscode"]
+              },
+              {
+                "group": "AI Agent",
+                "pages": ["en/integrations/openclaw", "en/integrations/hermes-agents"]
+              },
+              {
+                "group": "Tech Engineering",
+                "pages": ["en/integrations/langchain", "en/integrations/dify"]
+              },
+              {
+                "group": "Translation",
+                "pages": ["en/integrations/immersive-translate"]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/logo.jpg",
+    "dark": "/logo/logo.jpg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:bd@tennda.ai"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "TenndaAI",
+      "href": "https://client.tennda.ai"
+    }
+  },
+  "contextual": {
+    "options": ["copy", "view", "chatgpt", "claude", "perplexity", "mcp", "cursor", "vscode"]
+  },
+  "footer": {
+    "socials": {
+      "website": "https://client.tennda.ai"
+    }
+  }
+}
+
+

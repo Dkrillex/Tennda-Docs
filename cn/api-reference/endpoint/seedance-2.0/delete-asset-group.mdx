@@ -1,0 +1,29 @@
+---
+title: '删除素材组'
+description: 'DELETE /v1/asset-groups/{group_id}'
+api: 'DELETE https://api.tennda.ai/v1/asset-groups/{group_id}'
+---
+
+## 简介
+
+删除素材组，并级联删除组内所有素材。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 路径参数
+
+<ParamField path="group_id" type="string" required>
+  素材组 ID
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X DELETE "https://api.tennda.ai/v1/asset-groups/group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

@@ -1,0 +1,50 @@
+---
+title: 'Gemini Native (Image)'
+description: 'Gemini generateContent and Chat Completions image generation'
+api: 'POST https://api.tennda.ai/v1beta/models/{model}:generateContent'
+---
+
+## Introduction
+
+Gemini images can be requested via:
+
+- **Gemini native**: `POST /v1beta/models/{model}:generateContent` with `responseModalities: ["IMAGE"]` and `imageConfig`
+- **OpenAI-compatible**: `POST /v1/images/generations` — see [Nano Banana](/en/api-reference/endpoint/nano-banana) — or `POST /v1/chat/completions` for some models
+
+## Authentication
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## Request examples
+
+<Tabs>
+  <Tab title="generateContent">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1beta/models/gemini-2.5-flash-image:generateContent" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "contents": [{"role": "user", "parts": [{"text": "A cute orange cat in a garden, photo quality"}]}],
+        "generationConfig": {
+          "responseModalities": ["IMAGE"],
+          "imageConfig": {"aspectRatio": "16:9", "imageSize": "2K"}
+        }
+      }'
+    ```
+  </Tab>
+  <Tab title="Chat Completions">
+    ```bash
+    curl -X POST "https://api.tennda.ai/v1/chat/completions" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "model": "gemini-2.5-flash-image",
+        "messages": [{"role": "user", "content": "Generate a cyberpunk city at night"}]
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+See [Gemini native format](/en/api-reference/endpoint/gemini-native) and [Nano Banana](/en/api-reference/endpoint/nano-banana).

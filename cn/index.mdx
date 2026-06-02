@@ -1,0 +1,153 @@
+---
+title: "基本介绍"
+description: "企业级专业稳定的AI大模型API中转站，支持200+热门AI模型"
+---
+
+## 欢迎使用 TenndaAI
+
+**TenndaAI** 是企业级专业稳定的 AI 大模型 API 中转站，基于统一的 OpenAI API 标准，支持 200+ 热门 AI 模型。一个令牌，即可轻松调用 OpenAI、Claude、Gemini、DeepSeek、Qwen、Kimi、GLM 等所有主流大模型。
+
+## 📖 产品基础
+
+<Columns cols={2}>
+  <Card title="API 手册" icon="book" href="/cn/api-reference/index">
+    完整的接口文档和开发者指南
+  </Card>
+</Columns>
+
+## 🔧 核心接口
+
+<Columns cols={2}>
+  <Card title="对话补全 API" icon="comments" href="/cn/api-reference/endpoint/chat">
+    Chat Completions - 创建多轮对话和文本生成
+  </Card>
+  <Card title="图像生成 API" icon="image" href="/cn/api-reference/endpoint/image-generation">
+    支持文生图、图生图、上下文图文生图
+  </Card>
+  <Card title="模型列表 API" icon="list" href="/cn/api-reference/endpoint/list-models">
+    获取所有可用模型信息
+  </Card>
+</Columns>
+
+## 💡 支持的模型
+
+TenndaAI 已对接 **100+** 主流模型，一个 API Key 即可调用 **Anthropic · OpenAI · Google · Qwen · 豆包 · DeepSeek · GLM · MiniMax · Moonshot Kimi** 等 9 大顶级厂商。
+
+### ⭐ 本周精选
+
+<CardGroup cols={3}>
+  <Card title="Claude Opus 4.7" icon="trophy">
+    Anthropic 最新旗舰，复杂代理与生产级代码首选
+  </Card>
+  <Card title="GPT-5.5" icon="bolt">
+    OpenAI 最新主力，推理、文案与综合编程
+  </Card>
+  <Card title="Gemini 3.5 Flash" icon="gauge-high">
+    高吞吐低延迟，工具调用与高并发对话
+  </Card>
+</CardGroup>
+
+### 模型矩阵
+
+| 厂商 | 代表模型 |
+|------|---------|
+| 🎭 **Anthropic Claude** | Claude Opus 4.7 ⭐ / Opus 4.6 / Sonnet 4.6 / Sonnet 4.5 / Haiku 4.5 |
+| 🤖 **OpenAI** | GPT-5.5 ⭐ / GPT-5.4 系列（5.4 / Pro / Mini / Nano）/ GPT-Image-2 |
+| 🌟 **Google Gemini** | Gemini 3.5 Flash ⭐ / 3.1 Pro Preview / Flash Lite / Flash Image / 3 Pro Image |
+| 🐉 **阿里 Qwen** | Qwen3.5 Plus ⭐ / Qwen3.5 Flash / Qwen3 Max / Qwen3 Coder Plus / Qwen Image Plus |
+| 🌋 **字节豆包 Seed** | 豆包 Seed 2.0 Pro ⭐ / Code Preview / Lite / Mini |
+| 🔍 **DeepSeek** | DeepSeek V3.2 ⭐ / V3 / R1（推理） |
+| 💎 **智谱 GLM** | glm-5 ⭐ / glm-4.7（200K，编程 & 长程任务） |
+| ✨ **MiniMax** | MiniMax M2 ⭐ / Text-01 / abab6.5s |
+| 🌙 **Moonshot Kimi** | kimi-k2.5 ⭐（原生多模态）/ Kimi K2 250905 |
+
+<Tip>
+完整模型 ID、上下文长度与实时定价请访问 [TenndaAI 模型广场](https://client.tennda.ai/#/models)，详细介绍参见 [支持的模型页面](/cn/api-reference/models)。
+</Tip>
+
+## 🎯 使用场景
+
+<Columns cols={2}>
+  <Card title="对话型 AI" icon="message" href="/cn/integrations/cherry-studio">
+    Cherry Studio、Chatbox 等 AI 对话客户端
+  </Card>
+  <Card title="编程开发" icon="code" href="/cn/integrations/cursor">
+    Cursor、Claude Code、Cline 等 AI 编程工具
+  </Card>
+  <Card title="开发框架" icon="cube" href="/cn/integrations/langchain">
+    LangChain、Dify 等 AI 应用开发框架
+  </Card>
+  <Card title="翻译场景" icon="language" href="/cn/integrations/immersive-translate">
+    沉浸式翻译、Bob 翻译等工具
+  </Card>
+</Columns>
+
+## 🚀 为什么选择 TenndaAI？
+
+### 一个接口，多种模型
+
+无需为每个 AI 服务单独申请账号和管理 API 密钥：
+- **一个账号**：管理所有 AI 服务
+- **一个 API 密钥**：访问所有模型
+- **一套接口标准**：兼容 OpenAI API 格式
+
+### 🔧 简单易用
+
+切换模型就像修改一个参数一样简单：
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-xxxxxxxxxx",
+    base_url="https://api.tennda.ai/v1"
+)
+
+# 使用 GPT-5.5
+response = client.chat.completions.create(
+    model="gpt-5.5",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+# 切换到 Claude - 只需修改模型名称
+response = client.chat.completions.create(
+    model="claude-sonnet-4-6",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### 🛡️ 稳定可靠
+
+- **高可用性**：多节点部署，智能路由
+- **自动降级**：模型不可用时自动切换
+- **负载均衡**：智能分配请求，避免限流
+- **实时监控**：24/7 服务状态监控
+
+### 💰 成本优化
+
+- **统一计费**：所有模型使用统一余额
+- **透明定价**：清晰的价格体系
+- **用量统计**：详细的使用报告
+- **灵活充值**：支持多种支付方式
+
+## 🚀 开始使用
+
+<Steps>
+  <Step title="联系 BD 开通账号">
+    TenndaAI 不提供对外注册，请发送邮件至 [bd@tennda.ai](mailto:bd@tennda.ai) 联系 BD 团队为您开通账号
+  </Step>
+  <Step title="获取密钥">
+    登录控制台，生成您的 API 密钥
+  </Step>
+  <Step title="接入使用">
+    查看 [API 文档](/cn/api-reference/models) 开始集成
+  </Step>
+</Steps>
+
+## 🔗 快速链接
+
+<Columns cols={2}>
+  <Card title="管理控制台" icon="gauge" href="https://client.tennda.ai">
+    管理 API Key，查看使用统计和账单
+  </Card>
+</Columns>

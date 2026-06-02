@@ -1,0 +1,65 @@
+---
+title: '文档重排序（Rerank）'
+description: '根据查询对文档列表进行相关性重排序'
+api: 'POST https://api.tennda.ai/v1/rerank'
+---
+
+## 简介
+
+根据用户查询对候选文档列表进行相关性重排序，常用于 RAG 检索增强、知识库问答等场景。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="model" type="string" required>
+  重排序模型，如 `rerank-english-v2.0`
+</ParamField>
+
+<ParamField body="query" type="string" required>
+  查询文本
+</ParamField>
+
+<ParamField body="documents" type="array" required>
+  待重排序的文档列表（字符串或对象数组）
+</ParamField>
+
+<ParamField body="top_n" type="integer">
+  返回前 N 条结果
+</ParamField>
+
+<ParamField body="return_documents" type="boolean" default="false">
+  是否在结果中返回文档原文
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/rerank" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "rerank-english-v2.0",
+    "query": "什么是向量数据库？",
+    "documents": [
+      "向量数据库用于存储和检索嵌入向量",
+      "今天天气晴朗",
+      "RAG 系统常结合重排序提升召回质量"
+    ],
+    "top_n": 2,
+    "return_documents": true
+  }'
+```
+
+## 常用参数
+
+- **query**：用户问题或检索 query  
+- **documents**：候选段落列表  
+- **top_n**：只返回得分最高的 N 条  
+- **return_documents**：为 `true` 时响应包含原文  
+
+响应中的 `results` 数组包含 `index` 与 `relevance_score`，按相关性降序排列。

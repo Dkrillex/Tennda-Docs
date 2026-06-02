@@ -1,0 +1,283 @@
+---
+title: 'CC Switch'
+description: 'One desktop app to manage Claude Code, Codex CLI, Gemini CLI, OpenCode and OpenClaw — switch TenndaAI configurations with a click'
+tag: '🔥'
+---
+
+## 1. Overview
+
+**CC Switch** is a **Tauri 2**-based desktop app that unifies management of **Claude Code, Codex CLI, Gemini CLI, OpenCode and OpenClaw**. Switch API providers, models and keys through a GUI — no more hand-editing `~/.config/*`, TOML or JSON files across five different tools.
+
+<CardGroup cols={2}>
+  <Card title="One-click switching" icon="toggle-on">
+    Manage 5 CLI tools in one GUI — no more manual config editing
+  </Card>
+  <Card title="Multi-model aggregation" icon="layer-group">
+    Pair with **TenndaAI** for one key to Claude / GPT / Gemini / Kimi
+  </Card>
+  <Card title="Usage tracking" icon="chart-line">
+    Built-in Usage Dashboard for spend, requests and token usage
+  </Card>
+  <Card title="Smart failover" icon="shield">
+    Local proxy with hot-switching, auto-failover and circuit breaking
+  </Card>
+</CardGroup>
+
+<Info>
+**Project info**
+
+- Repo: [github.com/farion1231/cc-switch](https://github.com/farion1231/cc-switch)
+- License: MIT
+- Author: Jason Young (farion1231)
+</Info>
+
+## 2. Core Features
+
+### 2.1 Provider management
+
+- 50+ presets built-in (including AWS Bedrock, NVIDIA NIM, etc.)
+- Custom gateway support (which is how **TenndaAI** plugs in)
+- One-click switching, drag-to-reorder, import/export configs
+- System-tray quick access
+
+### 2.2 MCP server management
+
+- Centrally manage MCP server configs across all CLI tools
+- Two-way sync — change once, applied everywhere
+
+### 2.3 More
+
+| Feature | Description |
+|---------|-------------|
+| **Prompts manager** | Markdown editor with cross-app sync |
+| **Skills installer** | Install from GitHub repo or ZIP file |
+| **Session browser** | View and resume conversation history |
+| **Cloud sync** | Dropbox, OneDrive, iCloud, WebDAV |
+| **Deep link** | `ccswitch://` for one-click config import |
+
+## 3. Quick Start
+
+### Step 1 — Install CC Switch
+
+<Tabs>
+  <Tab title="macOS">
+    Homebrew:
+
+    ```bash
+    brew install --cask cc-switch
+    ```
+
+    Or download the DMG from [GitHub Releases](https://github.com/farion1231/cc-switch/releases).
+  </Tab>
+  <Tab title="Windows">
+    Download the MSI installer or Portable ZIP from [GitHub Releases](https://github.com/farion1231/cc-switch/releases).
+  </Tab>
+  <Tab title="Linux">
+    ```bash
+    # Debian / Ubuntu
+    sudo dpkg -i cc-switch_*.deb
+
+    # Fedora / RHEL
+    sudo rpm -i cc-switch_*.rpm
+
+    # Arch Linux
+    paru -S cc-switch-bin
+    ```
+
+    AppImage and Flatpak are also available.
+  </Tab>
+</Tabs>
+
+<Info>
+**System requirements**: Windows 10+, macOS 10.15 (Catalina)+, Ubuntu 22.04+ / Debian 11+ / Fedora 34+.
+</Info>
+
+### Step 2 — Get a TenndaAI key
+
+<Steps>
+  <Step title="Sign in">
+    Open the [TenndaAI console](https://client.tennda.ai) and register or log in.
+  </Step>
+  <Step title="Create a token">
+    Visit [API Keys](https://client.tennda.ai/#/keys) and click "Create new token".
+  </Step>
+  <Step title="Copy the key">
+    Copy the generated key (format `sk-xxxxxxxxxx`) and store it safely.
+  </Step>
+</Steps>
+
+### Step 3 — Configure TenndaAI in CC Switch
+
+<Steps>
+  <Step title="Open Provider management">
+    Launch CC Switch, open the **Provider** page, click "Add", and choose **Custom Gateway**.
+  </Step>
+  <Step title="Fill in the form">
+    | Field | Value |
+    |-------|-------|
+    | **Name** | `TenndaAI` |
+    | **API URL** | `https://api.tennda.ai` |
+    | **API Key** | Paste the key from Step 2 |
+    | **Enabled apps** | At least enable **Claude Code** (turn on Codex / Gemini CLI / OpenCode / OpenClaw as needed) |
+
+    <Warning>
+    Each CLI tool expects a slightly different Base URL:
+    - **Claude Code**: `https://api.tennda.ai` (**no** `/v1`)
+    - **Codex CLI / OpenCode**: `https://api.tennda.ai/v1` (**must** end with `/v1`)
+    - **Gemini CLI**: `https://api.tennda.ai` (**no** `/v1`)
+
+    CC Switch usually applies the right format per app, but if you set it manually, use the table above.
+    </Warning>
+  </Step>
+  <Step title="Save">
+    Click "Add". CC Switch syncs this configuration to the config files of every CLI tool you enabled.
+  </Step>
+</Steps>
+
+### Step 4 — Add models
+
+Add the TenndaAI model IDs you intend to use:
+
+**Claude — standard models**
+
+| Display name | Model ID | Notes |
+|--------------|----------|-------|
+| Claude Opus 4.7 | `claude-opus-4-7` | Latest flagship — top choice for complex tasks |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` | Strong coding ability, best value |
+| Claude Sonnet 4.5 | `claude-sonnet-4-5-20250929` | 200K long context |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | Fast and light — great for the haiku thread |
+
+**GPT / Gemini / Kimi**(mix and match under the same provider)
+
+| Display name | Model ID | Notes |
+|--------------|----------|-------|
+| GPT 5.5 | `gpt-5.5` | OpenAI's latest flagship |
+| GPT 5.1 Codex | `gpt-5.1-codex` | Codex-only — pair with Responses API in OpenCode |
+| Gemini 3.5 Flash | `gemini-3.5-flash` | High throughput / low latency |
+| Gemini 3.1 Pro Preview | `gemini-3.1-pro-preview` | Deep reasoning |
+| Kimi K2 | `kimi-k2-250905` | Great price/perf for long text and Chinese tasks |
+
+<Tip>
+**Model picks**:
+- Daily coding: `claude-sonnet-4-6`
+- Complex architecture: `claude-opus-4-7`
+- Quick Q&A / haiku thread: `claude-haiku-4-5-20251001`
+- Cost-optimized: `kimi-k2-250905` or `gemini-3.5-flash`
+
+See the full ID list in the [TenndaAI model catalog](https://client.tennda.ai/#/models).
+</Tip>
+
+### Step 5 — Switch and launch a CLI
+
+With **TenndaAI** set as the current Provider, every enabled CLI tool automatically picks up the configuration. Launch any of them:
+
+```bash
+# Claude Code
+claude
+
+# Codex
+codex
+
+# Gemini CLI
+gemini
+
+# OpenCode
+opencode
+```
+
+## 4. Usage Guide
+
+### 4.1 Manage multiple CLI tools
+
+CC Switch can drive these tools concurrently:
+
+| Tool | Detailed config |
+|------|-----------------|
+| **Claude Code** | [/en/integrations/claude-code](/en/integrations/claude-code) |
+| **Codex CLI** | [/en/integrations/codex](/en/integrations/codex) |
+| **Gemini CLI** | [/en/integrations/gemini-cli](/en/integrations/gemini-cli) |
+| **OpenCode** | [/en/integrations/open-code](/en/integrations/open-code) |
+| **OpenClaw** | [/en/integrations/openclaw](/en/integrations/openclaw) |
+
+All tools share the same Provider config — switching takes effect everywhere.
+
+### 4.2 Local proxy
+
+CC Switch ships a local proxy server that provides:
+
+- **Hot-switching** — change Provider without restarting the CLI
+- **Auto-failover** — fall back to a secondary Provider if the current one is down
+- **Circuit breaking** — stop sending requests when a Provider keeps failing
+
+<Tip>
+Configure **TenndaAI main** + **TenndaAI backup key** as failover targets for maximum availability.
+</Tip>
+
+### 4.3 Backups
+
+- Auto-backup keeps the last **10 versions**
+- Import / export full configs
+- Cloud sync via Dropbox, OneDrive, iCloud, WebDAV
+
+## 5. FAQ
+
+<AccordionGroup>
+  <Accordion title="Which OSes are supported?">
+    Windows 10+, macOS 10.15 (Catalina)+, and major Linux distros (Ubuntu 22.04+, Debian 11+, Fedora 34+, Arch Linux).
+  </Accordion>
+
+  <Accordion title="Claude Code can't connect after configuration?">
+    Check in order:
+
+    1. **API key** starts with `sk-` and has no extra whitespace / newlines
+    2. **Base URL** for Claude Code is `https://api.tennda.ai` (**no** `/v1`)
+    3. Account has sufficient balance — see the [TenndaAI console](https://client.tennda.ai)
+    4. CC Switch actually wrote the config to `~/.claude/`
+    5. Restart the terminal — env-var changes need a new session
+  </Accordion>
+
+  <Accordion title="OpenCode errors out with gpt-5.1-codex?">
+    Codex-series models only support the **Responses API**. Add `"apiCompatibility": "responses"` for that model in `opencode.jsonc` — see the [OpenCode guide](/en/integrations/open-code) for details.
+  </Accordion>
+
+  <Accordion title="How do I migrate from manual configs?">
+    On first launch, CC Switch scans `~/.claude/`, `~/.codex/`, `~/.config/opencode/` and similar paths and imports existing setups automatically. You can also use **Import config** for backup files.
+  </Accordion>
+
+  <Accordion title="What's the difference between standard and Thinking models?">
+    Thinking models force a chain-of-thought before answering — great for complex reasoning and architectural design. Standard models reply faster and suit everyday coding. TenndaAI variants ending in `-thinking` are the reasoning versions.
+  </Accordion>
+
+  <Accordion title="Does CC Switch itself cost anything?">
+    No. CC Switch is fully open-source (MIT). Only the API calls cost money — billed at TenndaAI's per-token rates.
+  </Accordion>
+</AccordionGroup>
+
+## 6. Best Practices
+
+<Tip>
+**Pro tips**:
+
+1. **One Provider to rule them all** — point every CLI at TenndaAI to avoid juggling multiple keys/URLs.
+2. **Use hot-switching** — flip between `claude-opus-4-7` / `claude-sonnet-4-6` / `claude-haiku-4-5-20251001` based on task complexity.
+3. **Enable auto-failover** — pair a primary and backup Provider (or two keys) for continuity.
+4. **Back up regularly** — turn on cloud sync so reinstalls don't wipe your config.
+5. **Pair with MCP** — manage MCP servers centrally so all CLI tools share the same external capabilities.
+</Tip>
+
+## 7. References
+
+<CardGroup cols={2}>
+  <Card title="CC Switch on GitHub" icon="github" href="https://github.com/farion1231/cc-switch">
+    Source, issues and latest releases
+  </Card>
+  <Card title="Claude Code guide" icon="terminal" href="/en/integrations/claude-code">
+    Detailed Claude Code setup
+  </Card>
+  <Card title="TenndaAI console" icon="gear" href="https://client.tennda.ai">
+    Manage keys and usage
+  </Card>
+  <Card title="Model catalog" icon="star" href="https://client.tennda.ai/#/models">
+    Browse 100+ mainstream AI models
+  </Card>
+</CardGroup>

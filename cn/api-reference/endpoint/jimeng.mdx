@@ -1,0 +1,72 @@
+---
+title: '即梦格式'
+description: '即梦官方 API 格式视频生成'
+api: 'POST https://api.tennda.ai/jimeng/'
+---
+
+## 简介
+
+即梦（Jimeng）视频生成使用火山引擎风格的官方 API：通过 **同一 URL** `POST /jimeng/`，用查询参数 `Action` 区分提交任务与查询结果。
+
+- **提交任务**：`Action=CVSync2AsyncSubmitTask`
+- **查询结果**：`Action=CVSync2AsyncGetResult`
+
+需同时传入 `Version`（API 版本，以控制台/上游要求为准）。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 查询参数
+
+<ParamField query="Action" type="string" required>
+  `CVSync2AsyncSubmitTask` 或 `CVSync2AsyncGetResult`
+</ParamField>
+
+<ParamField query="Version" type="string" required>
+  API 版本号
+</ParamField>
+
+## 请求示例
+
+<Tabs>
+  <Tab title="提交任务">
+    ```bash
+    curl -X POST "https://api.tennda.ai/jimeng/?Action=CVSync2AsyncSubmitTask&Version=2024-06-01" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "req_key": "jimeng_video_generation",
+        "prompt": "一只猫在弹钢琴"
+      }'
+    ```
+
+    图生视频可传 `binary_data_base64`（图片 Base64 数组）。
+  </Tab>
+  <Tab title="查询结果">
+    ```bash
+    curl -X POST "https://api.tennda.ai/jimeng/?Action=CVSync2AsyncGetResult&Version=2024-06-01" \
+      -H "Authorization: Bearer sk-xxxxxxxxxx" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "req_key": "jimeng_video_generation",
+        "task_id": "返回的异步任务 ID"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## 常用参数
+
+- **req_key**：请求类型，如 `jimeng_video_generation`  
+- **prompt**：文本描述  
+- **binary_data_base64**：参考图 Base64 列表（可选）  
+- **task_id**：查询结果时必填  
+
+响应体通常包含 `code`、`message`、`data` 字段，具体结构以实际上游返回为准。
+
+## 相关说明
+
+即梦与 OpenAI 风格的 `/v1/video/generations` 路径不同。其他视频模型（Sora、Veo、万相、Seedance 等）请使用 [提交视频任务](/cn/api-reference/endpoint/submit-video-task)。

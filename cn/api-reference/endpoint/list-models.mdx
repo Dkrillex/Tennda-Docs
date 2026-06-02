@@ -1,0 +1,281 @@
+---
+title: '列出模型'
+api: 'GET https://api.tennda.ai/v1/models'
+description: '获取当前 API Key 可用的模型列表，支持 OpenAI / Anthropic / Gemini 三种返回格式'
+---
+
+## 简介
+
+获取当前 API Key 可用的全部模型列表。**同一接口路径** `https://api.tennda.ai/v1/models` 会根据请求头自动返回对应平台的标准格式，无需切换接口或维护多份代码。
+
+<Card title="自动格式识别" icon="wand-magic-sparkles">
+  根据请求头中的认证方式判断客户端类型，**自动以 OpenAI / Anthropic / Gemini 的官方 ListModels 响应结构返回**，让原生 SDK 可以直接对接。
+</Card>
+
+## 格式识别规则
+
+| 请求特征 | 返回格式 |
+|---------|----------|
+| `x-api-key` + `anthropic-version` 请求头 | **Anthropic** |
+| `x-goog-api-key` 请求头 或 URL `?key=xxx` | **Gemini** |
+| `Authorization: Bearer ...`（其他情况） | **OpenAI**（默认） |
+
+<Note>
+若同时携带多种凭证，**优先级**为：Anthropic > Gemini > OpenAI。
+</Note>
+
+## 认证
+
+<ParamField header="Authorization" type="string">
+  OpenAI 兼容认证，格式：`Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+<ParamField header="x-api-key" type="string">
+  Anthropic 认证，直接填写 API Key（不带 `Bearer` 前缀）
+</ParamField>
+
+<ParamField header="anthropic-version" type="string">
+  Anthropic 协议版本，如 `2023-06-01`
+</ParamField>
+
+<ParamField header="x-goog-api-key" type="string">
+  Gemini 认证，直接填写 API Key
+</ParamField>
+
+## 请求示例
+
+<Tabs>
+  <Tab title="OpenAI 格式">
+    <CodeGroup>
+    ```bash cURL
+    curl https://api.tennda.ai/v1/models \
+      -H "Authorization: Bearer sk-XyLy**************************mIqSt"
+    ```
+
+    ```python Python
+    from openai import OpenAI
+
+    client = OpenAI(
+        api_key="sk-XyLy**************************mIqSt",
+        base_url="https://api.tennda.ai/v1"
+    )
+
+    models = client.models.list()
+
+    for model in models.data:
+        print(f"{model.id}  ({model.owned_by})")
+    ```
+
+    ```javascript Node.js
+    import OpenAI from 'openai';
+
+    const client = new OpenAI({
+      apiKey: 'sk-XyLy**************************mIqSt',
+      baseURL: 'https://api.tennda.ai/v1'
+    });
+
+    const models = await client.models.list();
+    models.data.forEach(m => console.log(`${m.id}  (${m.owned_by})`));
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Anthropic 格式">
+    <CodeGroup>
+    ```bash cURL
+    curl https://api.tennda.ai/v1/models \
+      -H "x-api-key: sk-XyLy**************************mIqSt" \
+      -H "anthropic-version: 2023-06-01"
+    ```
+
+    ```python Python
+    import anthropic
+
+    client = anthropic.Anthropic(
+        api_key="sk-XyLy**************************mIqSt",
+        base_url="https://api.tennda.ai"
+    )
+
+    for model in client.models.list().data:
+        print(f"{model.id}  ({model.display_name})")
+    ```
+    </CodeGroup>
+  </Tab>
+
+  <Tab title="Gemini 格式">
+    <CodeGroup>
+    ```bash cURL
+    curl "https://api.tennda.ai/v1/models" \
+      -H "x-goog-api-key: sk-XyLy**************************mIqSt"
+    ```
+
+    ```python Python
+    import requests
+
+    resp = requests.get(
+        "https://api.tennda.ai/v1/models",
+        headers={"x-goog-api-key": "sk-XyLy**************************mIqSt"}
+    )
+
+    for model in resp.json()["models"]:
+        print(f"{model['name']}  ({model['displayName']})")
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## 响应示例
+
+<Tabs>
+  <Tab title="OpenAI 格式">
+    ```json
+    {
+      "object": "list",
+      "data": [
+        {
+          "id": "gpt-5.4",
+          "object": "model",
+          "created": 1715232000,
+          "owned_by": "openai"
+        },
+        {
+          "id": "claude-sonnet-4-5-20250929",
+          "object": "model",
+          "created": 1743465600,
+          "owned_by": "anthropic"
+        },
+        {
+          "id": "gemini-2.5-pro",
+          "object": "model",
+          "created": 1746057600,
+          "owned_by": "google"
+        }
+      ]
+    }
+    ```
+  </Tab>
+
+  <Tab title="Anthropic 格式">
+    ```json
+    {
+      "data": [
+        {
+          "type": "model",
+          "id": "claude-opus-4-5-20251101",
+          "display_name": "Claude Opus 4.5",
+          "created_at": "2025-11-01T00:00:00Z"
+        },
+        {
+          "type": "model",
+          "id": "claude-sonnet-4-5-20250929",
+          "display_name": "Claude Sonnet 4.5",
+          "created_at": "2025-09-29T00:00:00Z"
+        }
+      ],
+      "has_more": false,
+      "first_id": "claude-opus-4-5-20251101",
+      "last_id": "claude-sonnet-4-5-20250929"
+    }
+    ```
+  </Tab>
+
+  <Tab title="Gemini 格式">
+    ```json
+    {
+      "models": [
+        {
+          "name": "models/gemini-2.5-pro",
+          "version": "001",
+          "displayName": "Gemini 2.5 Pro",
+          "description": "Google 旗舰多模态推理模型",
+          "inputTokenLimit": 1048576,
+          "outputTokenLimit": 8192,
+          "supportedGenerationMethods": ["generateContent", "countTokens"]
+        },
+        {
+          "name": "models/gemini-3.1-pro-preview",
+          "version": "preview",
+          "displayName": "Gemini 3.1 Pro Preview",
+          "inputTokenLimit": 1048576,
+          "outputTokenLimit": 8192,
+          "supportedGenerationMethods": ["generateContent", "countTokens"]
+        }
+      ]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## 响应字段
+
+### OpenAI 格式
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `object` | string | 固定为 `list` |
+| `data` | array | 模型列表 |
+| `data[].id` | string | 模型唯一标识，用于请求时填写 `model` 参数 |
+| `data[].object` | string | 固定为 `model` |
+| `data[].created` | integer | 模型发布时间（Unix 秒级时间戳） |
+| `data[].owned_by` | string | 模型提供商，如 `openai`、`anthropic`、`google` |
+
+### Anthropic 格式
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `data` | array | 模型列表 |
+| `data[].type` | string | 固定为 `model` |
+| `data[].id` | string | 模型唯一标识 |
+| `data[].display_name` | string | 展示名称 |
+| `data[].created_at` | string | 模型发布时间（ISO 8601 字符串） |
+| `has_more` | boolean | 是否还有下一页 |
+| `first_id` / `last_id` | string | 分页游标 |
+
+### Gemini 格式
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `models` | array | 模型列表 |
+| `models[].name` | string | 模型资源名，格式 `models/{id}` |
+| `models[].displayName` | string | 展示名称 |
+| `models[].description` | string | 模型描述 |
+| `models[].inputTokenLimit` | integer | 输入 token 上限 |
+| `models[].outputTokenLimit` | integer | 输出 token 上限 |
+| `models[].supportedGenerationMethods` | array | 支持的方法列表 |
+
+## 错误处理
+
+| 状态码 | 含义 | 处理建议 |
+|--------|------|----------|
+| `200` | 成功 | — |
+| `401` | API Key 无效或已过期 | 检查 Key 是否拼写正确、是否已被禁用 |
+| `429` | 请求频率过高 | 退避重试，或联系 BD 提升配额 |
+| `500` | 服务内部错误 | 短暂重试，仍失败请联系支持 |
+
+错误响应示例（OpenAI 格式）：
+
+```json
+{
+  "error": {
+    "message": "Invalid API key",
+    "type": "invalid_request_error",
+    "code": "invalid_api_key"
+  }
+}
+```
+
+## 最佳实践
+
+<Tip>
+- **建议缓存**：模型列表变化不频繁，推荐在客户端缓存 1 小时以上，避免高频请求。
+- **启动校验**：可在服务启动时调用一次本接口，校验 Key 可用性及目标模型是否在权限范围内。
+- **权限相关**：返回列表会随 API Key 的开通权限动态变化，不同 Key 看到的模型可能不同。
+- **SDK 直连**：使用 OpenAI / Anthropic / Google 官方 SDK 时，只需将 Base URL 指向 `https://api.tennda.ai`，无需任何额外适配。
+</Tip>
+
+<Note>
+Python 示例依赖：
+- OpenAI 格式：`pip install openai`
+- Anthropic 格式：`pip install anthropic`
+- Gemini 格式：`pip install requests`
+</Note>

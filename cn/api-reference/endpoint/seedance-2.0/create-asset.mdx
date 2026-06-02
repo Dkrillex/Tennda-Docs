@@ -1,0 +1,60 @@
+---
+title: '创建素材'
+description: 'POST /v1/assets'
+api: 'POST https://api.tennda.ai/v1/assets'
+---
+
+## 简介
+
+在素材组内创建素材。仅支持公网 **https URL**，不支持 Base64。创建后 `status` 为 `processing`，需轮询至 `active` 后再用于 `asset://`。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 请求参数
+
+<ParamField body="group_id" type="string" required>
+  素材组 ID
+</ParamField>
+
+<ParamField body="asset_type" type="string" required>
+  `image`、`video`、`audio`
+</ParamField>
+
+<ParamField body="url" type="string" required>
+  公网 https 资源地址
+</ParamField>
+
+<ParamField body="name" type="string">
+  素材名称
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X POST "https://api.tennda.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "group_id": "group-20260508120000-abcde",
+    "asset_type": "image",
+    "url": "https://example.com/face.jpg",
+    "name": "参考图"
+  }'
+```
+
+## 响应示例
+
+```json
+{
+  "virtual_id": "asset-20260508120001-xyz",
+  "status": "processing",
+  "asset_type": "image"
+}
+```
+
+生成任务中使用：`asset://asset-20260508120001-xyz`（映射到对应 `image_url` / `video_url` / `audio_url`）。

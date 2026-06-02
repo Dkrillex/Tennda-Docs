@@ -1,0 +1,49 @@
+---
+title: "查询视频生成任务"
+description: "Seedance 2.0 GET /v1/video/generations/{task_id}"
+api: "GET https://api.tennda.ai/v1/video/generations/{task_id}"
+---
+
+## 简介
+
+根据 `task_id` 轮询 Seedance 2.0 任务状态与结果。建议每 5 秒查询一次。
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 路径参数
+
+<ParamField path="task_id" type="string" required>
+  创建任务返回的 `task_id`
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## 状态说明
+
+| status | 说明 |
+| --- | --- |
+| `queued` | 排队中 |
+| `in_progress` | 生成中 |
+| `completed` | 成功，读取 `video_url` 或 `url` |
+| `failed` | 失败，查看 `error`；可 [查询审核拦截原因](/cn/api-reference/endpoint/seedance-2.0/get-moderation-result) |
+
+## 响应示例（成功）
+
+```json
+{
+  "task_id": "ut-abc123",
+  "status": "completed",
+  "progress": 100,
+  "video_url": "https://example.com/video.mp4",
+  "url": "https://example.com/video.mp4"
+}
+```

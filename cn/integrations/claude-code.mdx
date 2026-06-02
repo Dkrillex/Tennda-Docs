@@ -1,0 +1,270 @@
+---
+title: 'Claude Code'
+description: 'Claude Code 客户端集成指南：通过 TenndaAI 一站式接入 Claude / Kimi / GPT 全家族'
+---
+
+## 一、产品简介
+
+**Claude Code** 是 Anthropic 官方推出的终端 AI 编程客户端。通过 **TenndaAI**（兼容 Anthropic 接口）你可以：
+
+<CardGroup cols={2}>
+  <Card title="一键接入多家模型" icon="plug">
+    通过同一接口使用 Claude 全系列、Kimi K2、GPT 等模型
+  </Card>
+  <Card title="双线程模型架构" icon="microchip">
+    主线程跑重任务，副线程跑轻量补全，节省成本
+  </Card>
+  <Card title="无需订阅" icon="wallet">
+    按 token 计费，不依赖 Claude Pro 订阅
+  </Card>
+  <Card title="国内可用" icon="globe">
+    分布式节点 + 自动故障转移，网络稳定
+  </Card>
+</CardGroup>
+
+## 二、安装 Node.js（已安装可跳过）
+
+确保 Node.js 版本 **≥ 18.0**。
+
+<Tabs>
+  <Tab title="Windows">
+    下载安装包：[https://nodejs.org/dist/v22.18.0/node-v22.18.0-x64.msi](https://nodejs.org/dist/v22.18.0/node-v22.18.0-x64.msi)
+  </Tab>
+  <Tab title="macOS">
+    ```bash
+    sudo xcode-select --install
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    brew install node
+    node --version
+    ```
+  </Tab>
+  <Tab title="Ubuntu / Debian">
+    ```bash
+    curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo bash -
+    sudo apt-get install -y nodejs
+    node --version
+    ```
+  </Tab>
+</Tabs>
+
+### 卸载其他中转客户端（可选）
+
+如果之前安装过其他中转版本的 `@anthropic-ai/claude-code`，建议先卸载干净：
+
+```bash
+# 检查安装位置
+npm ls @anthropic-ai/claude-code
+npm ls -g @anthropic-ai/claude-code
+
+# 执行卸载
+npm uninstall @anthropic-ai/claude-code
+npm uninstall -g @anthropic-ai/claude-code
+```
+
+## 三、安装 Claude Code
+
+<Steps>
+  <Step title="全局安装">
+    ```bash
+    npm install -g @anthropic-ai/claude-code
+    ```
+  </Step>
+  <Step title="验证安装">
+    ```bash
+    claude --version
+    ```
+  </Step>
+</Steps>
+
+## 四、获取 TenndaAI 密钥
+
+<Steps>
+  <Step title="登录控制台">
+    访问 [TenndaAI 控制台](https://client.tennda.ai)。
+  </Step>
+  <Step title="创建密钥">
+    进入 [密钥管理](https://client.tennda.ai/#/keys) → 创建新令牌。
+  </Step>
+  <Step title="记录信息">
+    ```
+    base_url = "https://api.tennda.ai"
+    api_key  = "sk-zbTYx*******************************fceTvn5"
+    ```
+
+    <Warning>
+    注意：Claude Code 的 `ANTHROPIC_BASE_URL` **不需要**带 `/v1` 后缀，直接使用 `https://api.tennda.ai` 即可。
+    </Warning>
+  </Step>
+</Steps>
+
+## 五、配置环境变量
+
+### 1. 基础配置示例（单模型）
+
+<Tabs>
+  <Tab title="Mac / Linux">
+    ```bash
+    export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    export ANTHROPIC_MODEL="kimi-k2-250905"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows CMD">
+    ```cmd
+    set ANTHROPIC_BASE_URL=https://api.tennda.ai
+    set ANTHROPIC_AUTH_TOKEN=sk-zbTYx*******************************fceTvn5
+    set ANTHROPIC_MODEL=kimi-k2-250905
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    $env:ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    $env:ANTHROPIC_MODEL="kimi-k2-250905"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+</Tabs>
+
+### 2. 双模型架构说明
+
+Claude Code 默认使用 **双线程模型架构**，可有效节省成本：
+
+| 线程 | 环境变量 | 用途 |
+|------|----------|------|
+| **主线程模型** | `ANTHROPIC_MODEL` | 主要代码生成、对话、复杂任务处理 |
+| **副线程模型** | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | 文件监控、Linter 检查、自动补全等轻量任务 |
+
+<Tip>
+**典型搭配**：主线程使用 `claude-opus-4-7` 或 `claude-sonnet-4-6` 处理重活，副线程使用 `claude-haiku-4-5-20251001` 处理后台任务，可在保证质量的同时大幅降低 token 成本。
+</Tip>
+
+### 3. 推荐配置（双模型）
+
+<Tabs>
+  <Tab title="Mac / Linux">
+    ```bash
+    export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    export ANTHROPIC_MODEL="claude-sonnet-4-6"
+    export ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5-20251001"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows CMD">
+    ```cmd
+    set ANTHROPIC_BASE_URL=https://api.tennda.ai
+    set ANTHROPIC_AUTH_TOKEN=sk-zbTYx*******************************fceTvn5
+    set ANTHROPIC_MODEL=claude-sonnet-4-6
+    set ANTHROPIC_DEFAULT_HAIKU_MODEL=claude-haiku-4-5-20251001
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+  <Tab title="Windows PowerShell">
+    ```powershell
+    $env:ANTHROPIC_BASE_URL="https://api.tennda.ai"
+    $env:ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+    $env:ANTHROPIC_MODEL="claude-sonnet-4-6"
+    $env:ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5-20251001"
+    cd your-project-folder
+    claude
+    ```
+  </Tab>
+</Tabs>
+
+### 4. 单模型配置（可选）
+
+如果只想使用一个模型，有两种方式：
+
+**方法一：两个环境变量配置为同一个模型**
+
+```bash
+export ANTHROPIC_BASE_URL="https://api.tennda.ai"
+export ANTHROPIC_AUTH_TOKEN="sk-zbTYx*******************************fceTvn5"
+export ANTHROPIC_MODEL="kimi-k2-250905"
+export ANTHROPIC_DEFAULT_HAIKU_MODEL="kimi-k2-250905"
+cd your-project-folder
+claude
+```
+
+**方法二：启动后用命令切换主线程**
+
+保持「双模型」配置，启动 Claude Code 后在交互界面输入：
+
+```
+/model haiku
+```
+
+主线程会切换到 `ANTHROPIC_DEFAULT_HAIKU_MODEL` 指向的模型。
+
+## 六、推荐模型组合（经 TenndaAI 使用）
+
+| 场景 | 主线程 (`ANTHROPIC_MODEL`) | 副线程 (`ANTHROPIC_DEFAULT_HAIKU_MODEL`) |
+|------|--------------------------|----------------------------------------|
+| **生产级开发**（首选） | `claude-opus-4-7` | `claude-haiku-4-5-20251001` |
+| **日常开发**（推荐） | `claude-sonnet-4-6` | `claude-haiku-4-5-20251001` |
+| **性价比优先** | `kimi-k2-250905` | `claude-haiku-4-5-20251001` |
+| **长上下文** | `claude-sonnet-4-5-20250929` (200K) | `claude-haiku-4-5-20251001` |
+| **快速验证** | `claude-haiku-4-5-20251001` | `claude-haiku-4-5-20251001` |
+
+完整模型 ID 请参考 [TenndaAI 模型广场](https://client.tennda.ai/#/models)。
+
+## 七、常见问题
+
+<AccordionGroup>
+  <Accordion title="401 / API Key 无效">
+    1. 检查 `ANTHROPIC_AUTH_TOKEN` 是否完整、是否有多余空格或换行。
+    2. 在 [TenndaAI 控制台](https://client.tennda.ai/#/keys) 确认 Key 未被禁用。
+    3. 确保账户余额充足。
+  </Accordion>
+
+  <Accordion title="404 / endpoint 错误">
+    Claude Code 的 `ANTHROPIC_BASE_URL` **不要**加 `/v1`，使用 `https://api.tennda.ai` 即可（与 OpenAI 协议不同）。
+  </Accordion>
+
+  <Accordion title="如何在 Claude Code 中切换模型？">
+    启动后，在交互界面输入：
+
+    ```
+    /model              # 查看当前模型
+    /model haiku        # 切换到 ANTHROPIC_DEFAULT_HAIKU_MODEL
+    /model sonnet       # 部分版本支持的快捷别名
+    ```
+
+    或退出 CLI 修改环境变量后重新启动。
+  </Accordion>
+
+  <Accordion title="模型 ID 报错 not found">
+    请使用 [TenndaAI 模型列表](https://client.tennda.ai/#/models) 中的**完整 ID**，例如：
+
+    - ✅ `claude-sonnet-4-5-20250929`
+    - ❌ `claude-sonnet-4-5`
+
+    版本日期后缀不可省略。
+  </Accordion>
+
+  <Accordion title="如何减少 token 消耗？">
+    1. 优先采用**双模型配置**，副线程交给 Haiku；
+    2. 在 `claude` 启动时通过 `--max-turns` 等参数限制对话轮次；
+    3. 在项目中维护 `.claude/` 目录的项目记忆与上下文；
+    4. 使用 `/clear` 清理冗余上下文。
+  </Accordion>
+
+  <Accordion title="如何统一团队配置？">
+    把环境变量写入项目根目录的 `.env`、shell 启动脚本或 `direnv`，团队成员只需各自填入自己的 `ANTHROPIC_AUTH_TOKEN` 即可。
+  </Accordion>
+</AccordionGroup>
+
+## 八、参考链接
+
+- Claude Code 官方文档：[https://docs.anthropic.com/en/docs/claude-code](https://docs.anthropic.com/en/docs/claude-code)
+- TenndaAI 控制台：[https://client.tennda.ai](https://client.tennda.ai)
+- 模型广场：[https://client.tennda.ai/#/models](https://client.tennda.ai/#/models)
+- 密钥管理：[https://client.tennda.ai/#/keys](https://client.tennda.ai/#/keys)

@@ -1,0 +1,29 @@
+---
+title: '列出素材组'
+description: 'GET /v1/asset-groups'
+api: 'GET https://api.tennda.ai/v1/asset-groups'
+---
+
+## 简介
+
+列出当前用户的素材组。
+
+
+## 认证
+
+<ParamField header="Authorization" type="string" required>
+  Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+## 查询参数
+
+<ParamField query="group_type" type="string" default="aigc">
+  `aigc`、`liveness_face` 或 `all`；**未传时默认仅返回 `aigc`**
+</ParamField>
+
+## 请求示例
+
+```bash
+curl -X GET "https://api.tennda.ai/v1/asset-groups?group_type=all" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+```

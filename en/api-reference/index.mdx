@@ -1,0 +1,93 @@
+---
+title: 'API Reference'
+description: 'Tennda API complete documentation'
+---
+
+## Overview
+
+Tennda API provides RESTful endpoints compatible with the OpenAI API format. Use the unified gateway `https://api.tennda.ai` for chat, completions, embeddings, images, video, audio, and more.
+
+## AI model APIs
+
+<CardGroup cols={3}>
+  <Card title="Model list" icon="list" href="/en/api-reference/endpoint/list-models">
+    List available models
+  </Card>
+  <Card title="Chat" icon="comments" href="/en/api-reference/endpoint/chat-openai">
+    OpenAI-compatible chat completions
+  </Card>
+  <Card title="Claude messages" icon="message" href="/en/api-reference/endpoint/messages">
+    Anthropic Claude Messages API
+  </Card>
+  <Card title="Responses" icon="reply" href="/en/api-reference/endpoint/responses-openai">
+    OpenAI Responses API
+  </Card>
+  <Card title="Completions" icon="file-lines" href="/en/api-reference/endpoint/completions">
+    Legacy text completions
+  </Card>
+  <Card title="Embeddings" icon="database" href="/en/api-reference/endpoint/embeddings/create-embedding">
+    Text embeddings (OpenAI / Engines format)
+  </Card>
+  <Card title="Rerank" icon="magnifying-glass" href="/en/api-reference/endpoint/rerank">
+    Document reranking
+  </Card>
+  <Card title="Moderations" icon="shield-check" href="/en/api-reference/endpoint/moderations">
+    Content safety moderation
+  </Card>
+  <Card title="Audio" icon="headphones" href="/en/api-reference/endpoint/audio">
+    OpenAI speech/STT and Gemini native TTS
+  </Card>
+  <Card title="Realtime" icon="tower-broadcast" href="/en/api-reference/endpoint/realtime">
+    Real-time audio (WebSocket)
+  </Card>
+  <Card title="Images" icon="image" href="/en/api-reference/endpoint/image-generation">
+    Unified image generation
+  </Card>
+  <Card title="Nano Banana" icon="image" href="/en/api-reference/endpoint/nano-banana">
+    Gemini images via /images/generations
+  </Card>
+  <Card title="Gemini native (image)" icon="image" href="/en/api-reference/endpoint/gemini-image">
+    generateContent / Chat image output
+  </Card>
+  <Card title="GPT-Image-2" icon="image" href="/en/api-reference/endpoint/gpt-image-2">
+    OpenAI GPT-Image-2 text/image-to-image
+  </Card>
+  <Card title="Qwen Image" icon="image" href="/en/api-reference/endpoint/qwen-image">
+    Qwen text-to-image and editing
+  </Card>
+  <Card title="Image edits" icon="pen" href="/en/api-reference/endpoint/image-edits">
+    POST /v1/images/edits
+  </Card>
+  <Card title="Video overview" icon="video" href="/en/api-reference/endpoint/video-generation">
+    Multi-model video overview
+  </Card>
+  <Card title="Submit / query video" icon="video" href="/en/api-reference/endpoint/submit-video-task">
+    Unified POST /v1/video/generations
+  </Card>
+  <Card title="Wan 2.7" icon="video" href="/en/api-reference/endpoint/wan2.7">
+    Alibaba Wan 2.7 video models
+  </Card>
+  <Card title="Veo" icon="video" href="/en/api-reference/endpoint/veo">
+    Google Veo video generation
+  </Card>
+  <Card title="Seedance 2.0" icon="video" href="/en/api-reference/endpoint/seedance-2.0">
+    Doubao Seedance 2.0 and asset library
+  </Card>
+</CardGroup>
+
+## General
+
+<Columns cols={2}>
+  <Card title="Supported models" icon="cube" href="/en/api-reference/models">
+    Model matrix and selection guide
+  </Card>
+  <Card title="OpenAI SDK" icon="code" href="/en/api-reference/openai-sdk">
+    SDK examples in multiple languages
+  </Card>
+  <Card title="Query video task" icon="search" href="/en/api-reference/endpoint/query-video-task">
+    Poll video task status
+  </Card>
+  <Card title="Download video" icon="download" href="/en/api-reference/endpoint/download-video">
+    Download video (Sora 2)
+  </Card>
+</Columns>

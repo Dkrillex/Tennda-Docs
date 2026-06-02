@@ -1,0 +1,285 @@
+---
+title: 'CC Switch'
+description: '统一管理 Claude Code、Codex CLI、Gemini CLI、OpenCode、OpenClaw 五款 AI CLI 工具的桌面应用，一键切换 TenndaAI 配置'
+tag: '🔥'
+---
+
+## 一、产品简介
+
+**CC Switch** 是一款基于 **Tauri 2** 构建的桌面应用，可以统一管理 **Claude Code、Codex CLI、Gemini CLI、OpenCode、OpenClaw** 五款 AI CLI 工具。通过图形界面一键切换 API 提供商、模型与密钥，告别手动编辑 `~/.config/*`、TOML、JSON 等多份配置文件。
+
+<CardGroup cols={2}>
+  <Card title="一键切换" icon="toggle-on">
+    图形界面统一管理 5 款 CLI 工具配置，告别手动编辑
+  </Card>
+  <Card title="多模型聚合" icon="layer-group">
+    搭配 **TenndaAI** 一份 Key 直通 Claude / GPT / Gemini / Kimi 全家族
+  </Card>
+  <Card title="用量追踪" icon="chart-line">
+    内置 Usage Dashboard，实时查看花费、请求数与 Token 用量
+  </Card>
+  <Card title="智能容错" icon="shield">
+    本地代理支持热切换、自动故障转移与熔断保护
+  </Card>
+</CardGroup>
+
+<Info>
+**项目信息**
+
+- 开源地址：[github.com/farion1231/cc-switch](https://github.com/farion1231/cc-switch)
+- 许可证：MIT
+- 作者：Jason Young（farion1231）
+</Info>
+
+## 二、核心功能
+
+### 1. Provider 管理
+
+- 内置 50+ 预设提供商（含 AWS Bedrock、NVIDIA NIM 等）
+- 支持自定义网关（**TenndaAI** 即通过这种方式接入）
+- 一键切换、拖拽排序、配置导入导出
+- 系统托盘快速访问
+
+### 2. MCP 服务器管理
+
+- 统一管理所有 CLI 工具的 MCP 服务器配置
+- 双向同步：修改一处自动同步到所有应用
+
+### 3. 更多特性
+
+| 特性 | 说明 |
+|------|------|
+| **Prompts 管理** | Markdown 编辑器 + 跨应用同步 |
+| **Skills 安装** | 从 GitHub 仓库或 ZIP 文件安装技能 |
+| **Session 浏览器** | 查看和恢复对话历史 |
+| **云同步** | 支持 Dropbox、OneDrive、iCloud、WebDAV |
+| **Deep Link** | `ccswitch://` 协议一键导入配置 |
+
+## 三、快速开始
+
+### 第一步：安装 CC Switch
+
+<Tabs>
+  <Tab title="macOS">
+    使用 Homebrew 安装：
+
+    ```bash
+    brew install --cask cc-switch
+    ```
+
+    或从 [GitHub Releases](https://github.com/farion1231/cc-switch/releases) 下载 DMG 安装包。
+  </Tab>
+  <Tab title="Windows">
+    从 [GitHub Releases](https://github.com/farion1231/cc-switch/releases) 下载 MSI 安装程序或 Portable ZIP 包。
+  </Tab>
+  <Tab title="Linux">
+    根据发行版选择安装方式：
+
+    ```bash
+    # Debian / Ubuntu
+    sudo dpkg -i cc-switch_*.deb
+
+    # Fedora / RHEL
+    sudo rpm -i cc-switch_*.rpm
+
+    # Arch Linux
+    paru -S cc-switch-bin
+    ```
+
+    也可使用 **AppImage** 或 **Flatpak**。
+  </Tab>
+</Tabs>
+
+<Info>
+**系统要求**：Windows 10+、macOS 10.15 (Catalina)+、Ubuntu 22.04+ / Debian 11+ / Fedora 34+
+</Info>
+
+### 第二步：获取 TenndaAI 密钥
+
+<Steps>
+  <Step title="登录控制台">
+    访问 [TenndaAI 控制台](https://client.tennda.ai) 注册或登录账号。
+  </Step>
+  <Step title="创建令牌">
+    进入 [密钥管理](https://client.tennda.ai/#/keys) 页面，点击「创建新令牌」。
+  </Step>
+  <Step title="复制密钥">
+    复制生成的密钥（格式：`sk-xxxxxxxxxx`），妥善保存。
+  </Step>
+</Steps>
+
+### 第三步：在 CC Switch 中配置 TenndaAI
+
+<Steps>
+  <Step title="打开 Provider 管理">
+    启动 CC Switch，进入 **Provider** 管理页面，点击「添加」→ 选择**「自定义网关」**。
+  </Step>
+  <Step title="填写配置信息">
+    | 字段 | 值 |
+    |------|-----|
+    | **名称** | `TenndaAI` |
+    | **API 地址** | `https://api.tennda.ai` |
+    | **API Key** | 上一步复制的密钥 |
+    | **启用的应用** | 至少开启 **Claude Code**（按需开启 Codex / Gemini CLI / OpenCode / OpenClaw） |
+
+    <Warning>
+    不同 CLI 工具对 Base URL 的要求不同：
+    - **Claude Code**：`https://api.tennda.ai`（**不带** `/v1`）
+    - **Codex CLI / OpenCode**：`https://api.tennda.ai/v1`（**必须**带 `/v1`）
+    - **Gemini CLI**：`https://api.tennda.ai`（**不带** `/v1`）
+
+    CC Switch 通常会根据所选应用自动适配，若手动指定请按上表填写。
+    </Warning>
+  </Step>
+  <Step title="保存配置">
+    点击「添加」按钮保存。CC Switch 会将该配置同步到你勾选的所有 CLI 工具的配置文件中。
+  </Step>
+</Steps>
+
+### 第四步：添加模型
+
+在 Provider 配置中根据用途添加 TenndaAI 中的模型 ID：
+
+**Claude 标准模型**
+
+| 模型名称 | 模型标识 | 说明 |
+|---------|---------|------|
+| Claude Opus 4.7 | `claude-opus-4-7` | 最新旗舰，复杂任务首选 |
+| Claude Sonnet 4.6 | `claude-sonnet-4-6` | 编程能力强，性价比之选 |
+| Claude Sonnet 4.5 | `claude-sonnet-4-5-20250929` | 200K 长上下文 |
+| Claude Haiku 4.5 | `claude-haiku-4-5-20251001` | 轻量快速，副线程首选 |
+
+**GPT / Gemini / Kimi 系列**（可在同一 Provider 下混用）
+
+| 模型名称 | 模型标识 | 说明 |
+|---------|---------|------|
+| GPT 5.5 | `gpt-5.5` | OpenAI 最新主力 |
+| GPT 5.1 Codex | `gpt-5.1-codex` | Codex 专用（OpenCode 中需配合 Responses API） |
+| Gemini 3.5 Flash | `gemini-3.5-flash` | 高吞吐低延迟 |
+| Gemini 3.1 Pro Preview | `gemini-3.1-pro-preview` | 深度推理 |
+| Kimi K2 | `kimi-k2-250905` | 长文本与中文场景性价比高 |
+
+<Tip>
+**模型选择建议**：
+- 日常编程：`claude-sonnet-4-6`
+- 复杂架构设计：`claude-opus-4-7`
+- 快速问答 / 副线程：`claude-haiku-4-5-20251001`
+- 性价比方案：`kimi-k2-250905` 或 `gemini-3.5-flash`
+
+完整模型 ID 以 [TenndaAI 模型广场](https://client.tennda.ai/#/models) 为准。
+</Tip>
+
+### 第五步：一键切换并启动 CLI
+
+配置完成后，在 CC Switch 中将 **TenndaAI** 设为当前 Provider，所有勾选的 CLI 工具会自动切换到该配置。打开任意工具即可立即使用：
+
+```bash
+# Claude Code
+claude
+
+# Codex
+codex
+
+# Gemini CLI
+gemini
+
+# OpenCode
+opencode
+```
+
+## 四、使用指南
+
+### 1. 同时管理多款 CLI 工具
+
+CC Switch 支持同时管理：
+
+| 工具 | 详细配置 |
+|------|---------|
+| **Claude Code** | [/cn/integrations/claude-code](/cn/integrations/claude-code) |
+| **Codex CLI** | [/cn/integrations/codex](/cn/integrations/codex) |
+| **Gemini CLI** | [/cn/integrations/gemini-cli](/cn/integrations/gemini-cli) |
+| **OpenCode** | [/cn/integrations/open-code](/cn/integrations/open-code) |
+| **OpenClaw** | [/cn/integrations/openclaw](/cn/integrations/openclaw) |
+
+所有工具共享 Provider 配置，切换一次即可全部生效。
+
+### 2. 本地代理功能
+
+CC Switch 内置本地代理服务器，提供：
+
+- **热切换**：无需重启 CLI 即可切换 Provider
+- **自动故障转移**：当前 Provider 不可用时自动切换到备选
+- **熔断保护**：检测到持续故障时自动停止请求，防止资源浪费
+
+<Tip>
+建议在 CC Switch 中配置 **TenndaAI 主分组** + **TenndaAI 备用 Key** 作为故障转移目标，最大化可用性。
+</Tip>
+
+### 3. 配置备份
+
+- 自动备份系统保留最近 **10 个版本**
+- 支持导入/导出完整配置
+- 云同步支持 Dropbox、OneDrive、iCloud、WebDAV
+
+## 五、常见问题
+
+<AccordionGroup>
+  <Accordion title="CC Switch 支持哪些操作系统？">
+    支持 Windows 10+、macOS 10.15 (Catalina)+，以及主流 Linux 发行版（Ubuntu 22.04+、Debian 11+、Fedora 34+、Arch Linux）。
+  </Accordion>
+
+  <Accordion title="配置后 Claude Code 无法连接？">
+    请按以下顺序排查：
+
+    1. **API Key 正确**：以 `sk-` 开头，无空格 / 换行；
+    2. **Base URL 正确**：Claude Code 必须使用 `https://api.tennda.ai`（**不带** `/v1`）；
+    3. **账户余额充足**：在 [TenndaAI 控制台](https://client.tennda.ai) 查看余额；
+    4. **配置已同步**：在 CC Switch 中确认配置已写入 Claude Code 的 `~/.claude/` 目录；
+    5. **重启 CLI**：环境变量类的修改需要重启终端会话。
+  </Accordion>
+
+  <Accordion title="OpenCode 选择 gpt-5.1-codex 报错？">
+    `gpt-5.1-codex` 等 Codex 系列模型仅支持 **Responses API**。请在 OpenCode 的 `opencode.jsonc` 中为该模型添加 `"apiCompatibility": "responses"`，详见 [OpenCode 配置指南](/cn/integrations/open-code)。
+  </Accordion>
+
+  <Accordion title="如何从其他配置方式迁移到 CC Switch？">
+    CC Switch 支持自动检测已安装 CLI 工具的现有配置。首次启动时会扫描 `~/.claude/`、`~/.codex/`、`~/.config/opencode/` 等目录并导入。也可手动通过 **导入配置** 功能导入备份文件。
+  </Accordion>
+
+  <Accordion title="标准模型和 Thinking 模型有什么区别？">
+    Thinking（推理）模型会强制启用思维链模式，在回答前进行深度推理分析，适合复杂逻辑推理、架构设计等场景。标准模型响应更快，适合日常编程和简单任务。TenndaAI 模型广场中带 `-thinking` 后缀的即为对应推理版本。
+  </Accordion>
+
+  <Accordion title="CC Switch 本身是否收费？">
+    CC Switch 完全免费开源（MIT 许可证）。只有 API 调用会产生费用，按 TenndaAI 的 token 定价计费。
+  </Accordion>
+</AccordionGroup>
+
+## 六、最佳实践
+
+<Tip>
+**高效使用建议**：
+
+1. **统一 Provider**：将所有 CLI 工具的 Provider 都统一指向 TenndaAI，避免多套 Key、多套 Base URL 维护。
+2. **善用热切换**：根据任务复杂度在 `claude-opus-4-7` / `claude-sonnet-4-6` / `claude-haiku-4-5-20251001` 之间快速切换。
+3. **启用自动故障转移**：配置主备双 Provider 或双 Key，确保服务连续性。
+4. **定期备份**：开启云同步，避免重装系统后丢失配置。
+5. **结合 MCP**：在 CC Switch 中统一管理 MCP 服务器，所有 CLI 工具共享同一套外部能力。
+</Tip>
+
+## 七、参考链接
+
+<CardGroup cols={2}>
+  <Card title="CC Switch GitHub" icon="github" href="https://github.com/farion1231/cc-switch">
+    查看源码、提交 Issue 与下载最新版本
+  </Card>
+  <Card title="Claude Code 配置" icon="terminal" href="/cn/integrations/claude-code">
+    Claude Code 的详细配置教程
+  </Card>
+  <Card title="TenndaAI 控制台" icon="gear" href="https://client.tennda.ai">
+    管理 API 密钥与查看用量
+  </Card>
+  <Card title="模型广场" icon="star" href="https://client.tennda.ai/#/models">
+    浏览全部 100+ 主流 AI 模型
+  </Card>
+</CardGroup>

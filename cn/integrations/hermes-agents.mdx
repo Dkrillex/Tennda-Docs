@@ -1,0 +1,229 @@
+---
+title: 'Hermes Agents'
+description: 'Hermes Agent 自托管自学习 AI 代理集成指南（TenndaAI）'
+---
+
+## 一、产品简介
+
+**Hermes Agent** 是由 [Nous Research](https://nousresearch.com/) 发布的开源（MIT 协议）自托管 AI 代理，被称为「**会随你成长的 Agent**」。它不是绑定在 IDE 里的编程插件，也不是单个 API 的聊天封装，而是一个**长期运行在你服务器上、会自我学习、能在多个平台被随时调用**的自主代理。
+
+通过对接 **TenndaAI**（OpenAI 兼容接口），Hermes Agent 可以无缝接入 GPT、Claude、Gemini、DeepSeek 等 400+ 主流模型。
+
+<CardGroup cols={2}>
+  <Card title="持久记忆" icon="brain">
+    跨会话记住项目、用户偏好、解决方案
+  </Card>
+  <Card title="自动技能合成" icon="wand-magic-sparkles">
+    从交互中自动生成、迭代可复用的 Skill
+  </Card>
+  <Card title="多平台触达" icon="message-circle">
+    Telegram / Discord / Slack / WhatsApp / Signal / Email / CLI
+  </Card>
+  <Card title="真沙箱" icon="shield">
+    Local / Docker / SSH / Singularity / Modal 五种后端
+  </Card>
+</CardGroup>
+
+<Info>
+官网：[hermes-agent.nousresearch.com](https://hermes-agent.nousresearch.com) ｜ 项目：[github.com/NousResearch/hermes-agent](https://github.com/NousResearch/hermes-agent) ｜ 协议：MIT
+</Info>
+
+## 二、核心能力
+
+- **持久记忆**：使用本地向量库长期保存对话与项目知识
+- **学习循环**：自动把成功的解法沉淀为可调用的 Skill
+- **定时自动化**：用自然语言描述 cron 任务，无人值守运行
+- **子代理与并行**：派发隔离子代理，自带独立终端 / Python RPC，互不污染上下文
+- **完整 Web 控制**：浏览器自动化、视觉理解、图像生成、文本转语音
+- **真实沙箱**：本地、Docker、SSH、Singularity、Modal 等多种执行后端
+
+## 三、前置条件
+
+- 在 [TenndaAI 控制台](https://client.tennda.ai/#/keys) 创建 API Key
+- 一台可运行的服务器或本机：Linux / macOS / WSL2 / Android (Termux)
+- Windows 用户使用 PowerShell（早期 Beta）
+
+<Warning>
+Hermes Agent **要求模型上下文 ≥ 64K tokens**。Claude、GPT、Gemini、DeepSeek 等主流模型均满足。
+</Warning>
+
+## 四、安装
+
+一条命令即可完成依赖安装：
+
+<CodeGroup>
+```bash Linux / macOS / WSL2 / Termux
+curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash
+source ~/.zshrc   # 或 source ~/.bashrc
+```
+
+```powershell Windows PowerShell（Beta）
+irm https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1 | iex
+```
+</CodeGroup>
+
+安装完成后会在 `~/.hermes/hermes-agent` 部署所有依赖，无需手动 `pip install`。
+
+## 五、配置 TenndaAI
+
+Hermes Agent 通过 **Custom Endpoint**（自定义端点）方式接入任意 OpenAI 兼容服务。
+
+### 方式一：CLI 交互式（推荐）
+
+```bash
+hermes model
+```
+
+在出现的菜单中选择 **Custom endpoint (self-hosted / VLLM / etc.)**，依次填写：
+
+| 字段 | 填写内容 |
+|------|----------|
+| API Base URL | `https://api.tennda.ai/v1` |
+| API Key | 你的 TenndaAI 密钥（`sk-...`） |
+| Model name | `claude-sonnet-4-6`（或其他 TenndaAI 模型 ID） |
+
+配置会持久化到 `~/.hermes/config.yaml`。
+
+### 方式二：手动编辑 config.yaml
+
+打开 `~/.hermes/config.yaml`，在 `model:` 配置块写入：
+
+```yaml
+model:
+  provider: custom
+  model: claude-sonnet-4-6
+  base_url: https://api.tennda.ai/v1
+  api_key: sk-你的TenndaAI密钥
+```
+
+<Tip>
+当 `base_url` 被设置时，Hermes 会忽略 `provider` 字段，直接调用该地址；密钥优先从 `model.api_key` 读取，也可使用环境变量 `OPENAI_API_KEY`。
+</Tip>
+
+### 方式三：环境变量
+
+```bash
+export OPENAI_BASE_URL=https://api.tennda.ai/v1
+export OPENAI_API_KEY=sk-你的TenndaAI密钥
+hermes model   # 选择 Custom Endpoint 后会自动读取
+```
+
+### 方式四：多端点（命名 custom providers）
+
+可在配置中预先声明多个端点，运行时按需切换：
+
+```yaml
+custom_providers:
+  - name: tennda
+    base_url: https://api.tennda.ai/v1
+    key_env: TENNDA_API_KEY
+    api_mode: chat_completions
+  - name: tennda-anthropic
+    base_url: https://api.tennda.ai/anthropic
+    key_env: TENNDA_API_KEY
+    api_mode: anthropic_messages
+```
+
+执行 `hermes model` 切换；或者在 `model.provider` 字段填 `tennda`。
+
+## 六、启动与验证
+
+```bash
+hermes setup     # 首次运行配置向导（已配置可跳过）
+hermes doctor    # 健康检查：核对密钥与 /models 接口
+hermes start     # 启动 Gateway，开始接收消息
+```
+
+随后即可在 CLI、Telegram、Discord、Slack 等任一接入的渠道与 Hermes Agent 对话。
+
+## 七、推荐模型配置
+
+| 任务类型 | 推荐模型 ID | 说明 |
+|---------|------------|------|
+| 复杂任务执行 | `claude-sonnet-4-6` | 工具调用稳定、长任务表现优秀 |
+| 编程开发 | `deepseek-v3-2-251201` | 中文编程、性价比高 |
+| 通用对话 | `gpt-5.5` | 综合能力均衡 |
+| 长上下文 | `gemini-3.1-pro-preview` | 超长文档分析 |
+| 低延迟 | `claude-haiku-4-5-20251001` | 快速响应 |
+| 推理增强 | `claude-opus-4-7` | 复杂推理、算法 / 逻辑 |
+
+完整模型清单见 [TenndaAI 模型市场](https://client.tennda.ai/#/models)。
+
+## 八、接入消息平台
+
+Hermes Agent 支持多渠道同时上线，运行时通过 Gateway 统一调度：
+
+| 平台 | 配置位置 |
+|------|----------|
+| Telegram | `channels.telegram.token` |
+| Discord | `channels.discord.bot_token` |
+| Slack | `channels.slack.bot_token` |
+| WhatsApp | 扫码登录 |
+| Signal | linked-device 二维码 |
+| Email | SMTP / IMAP |
+| CLI | 直接 `hermes chat` |
+
+国内使用 Telegram / Discord 等海外平台请配置代理。
+
+## 九、扩展能力
+
+### 自动技能 (Skills)
+
+```bash
+hermes skills search kubernetes
+hermes skills install openai/skills/k8s
+```
+
+Hermes 会从对话中**自动合成可复用的 Skill**，并在后续任务中自动复用——这是与一般 Agent 框架最大的差异。
+
+### MCP Server
+
+在 `~/.hermes/config.yaml` 中接入 MCP 工具：
+
+```yaml
+mcp_servers:
+  github:
+    command: npx
+    args: ["-y", "@modelcontextprotocol/server-github"]
+    env:
+      GITHUB_PERSONAL_ACCESS_TOKEN: "ghp_xxx"
+```
+
+### 沙箱后端
+
+```yaml
+sandbox:
+  backend: docker   # local / docker / ssh / singularity / modal
+```
+
+## 十、常用命令
+
+| 命令 | 功能 |
+|------|------|
+| `hermes setup` | 初始化向导 |
+| `hermes model` | 选择 / 切换模型与 Provider |
+| `hermes doctor` | 健康检查 |
+| `hermes start` / `stop` / `restart` | 启停 Gateway |
+| `hermes chat` | 终端聊天 |
+| `hermes skills` | Skill 仓库管理 |
+| `hermes logs --follow` | 实时日志 |
+| `hermes update` | 升级 |
+
+## 十一、故障排查
+
+<AccordionGroup>
+  <Accordion title="401 / 鉴权失败">
+    - 检查 `~/.hermes/config.yaml` 中的 `api_key` 是否完整
+    - 若同时存在 `OPENAI_API_KEY` 等环境变量，请确认覆盖关系（Hermes 仅向当前 base_url 发送对应 key）
+  </Accordion>
+  <Accordion title="404 / Endpoint Not Found">
+    - `base_url` 必须以 `/v1` 结尾（chat_completions 模式）
+    - 使用 Claude 原生协议时改用 `https://api.tennda.ai/anthropic`，并设置 `api_mode: anthropic_messages`
+  </Accordion>
+  <Accordion title="模型上下文不足">
+    Hermes 要求 ≥ 64K 上下文；请改用 `claude-sonnet-4-6`、`openai/gpt-5.4`、`gemini-3.1-pro-preview` 等长上下文模型
+  </Accordion>
+  <Accordion title="配置不生效">
+    `config.yaml` 是唯一权威配置源，若 `.env` 中仍残留旧的 `OPENAI_BASE_URL`，请执行 `hermes setup` 触发迁移
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,31 @@
+---
+title: '实时语音（Realtime）'
+description: 'WebSocket 实时音频对话'
+api: 'GET wss://api.tennda.ai/v1/realtime'
+---
+
+## 简介
+
+通过 WebSocket 建立实时语音对话会话，兼容 OpenAI Realtime API。需使用 **WebSocket 协议**连接，而非普通 HTTP POST。
+
+## 认证
+
+在建立 WebSocket 连接时携带 Bearer Token（具体方式以 OpenAI Realtime 规范为准，通常为连接头或首条鉴权消息）。
+
+## 连接示例
+
+```
+wss://api.tennda.ai/v1/realtime?model=gpt-4o-realtime-preview
+```
+
+<ParamField query="model" type="string">
+  实时模型，如 `gpt-4o-realtime-preview`
+</ParamField>
+
+## 常用说明
+
+- 协议升级响应：**101 Switching Protocols** 表示连接成功  
+- 连接后按 Realtime 事件协议发送/接收音频与文本  
+- 适用于低延迟语音助手、实时翻译等场景  
+
+完整事件类型与消息格式请参考 [OpenAI Realtime API](https://platform.openai.com/docs/guides/realtime)。
