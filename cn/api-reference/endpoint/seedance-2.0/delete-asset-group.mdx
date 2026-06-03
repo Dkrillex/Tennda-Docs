@@ -1,13 +1,12 @@
 ---
 title: '删除素材组'
 description: 'DELETE /v1/asset-groups/{group_id}'
-api: 'DELETE https://api.tennda.ai/v1/asset-groups/{group_id}'
+api: 'DELETE https://api.gravitex.ai/v1/asset-groups/{group_id}'
 ---
 
 ## 简介
 
-删除素材组，并级联删除组内所有素材。
-
+删除指定素材组，并**级联删除**组内所有素材（上游 + 本地映射）。
 
 ## 认证
 
@@ -18,12 +17,12 @@ api: 'DELETE https://api.tennda.ai/v1/asset-groups/{group_id}'
 ## 路径参数
 
 <ParamField path="group_id" type="string" required>
-  素材组 ID
+  素材组 ID（来自创建素材组或 H5 核验 postMessage）
 </ParamField>
 
 ## 请求示例
 
 ```bash
-curl -X DELETE "https://api.tennda.ai/v1/asset-groups/group-20260508120000-abcde" \
+curl -X DELETE "https://api.gravitex.ai/v1/asset-groups/group-20260508120000-abcde" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```

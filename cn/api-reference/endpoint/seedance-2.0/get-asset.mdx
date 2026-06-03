@@ -1,13 +1,12 @@
 ---
 title: '查询单个素材'
 description: 'GET /v1/assets/{virtual_id}'
-api: 'GET https://api.tennda.ai/v1/assets/{virtual_id}'
+api: 'GET https://api.gravitex.ai/v1/assets/{virtual_id}'
 ---
 
 ## 简介
 
-查询单个素材详情与处理状态。生成视频前请确认 `status` 为 `active`。
-
+查询单个素材详情，并自动刷新上游处理状态。生成视频前请确认 `status` 为 `active`。
 
 ## 认证
 
@@ -18,13 +17,13 @@ api: 'GET https://api.tennda.ai/v1/assets/{virtual_id}'
 ## 路径参数
 
 <ParamField path="virtual_id" type="string" required>
-  素材虚拟 ID（如 `asset-xxx`）
+  素材 ID（如 `asset-20260508120145-pqwhc`，与 `asset_url` 中 `asset://` 后部分一致）
 </ParamField>
 
 ## 请求示例
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+curl "https://api.gravitex.ai/v1/assets/asset-20260508120145-pqwhc" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 
@@ -32,6 +31,8 @@ curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
 
 | status | 说明 |
 |--------|------|
-| `processing` | 处理中，继续轮询 |
-| `active` | 可用，可写入 `asset://` |
-| `failed` | 处理失败 |
+| `pending` | 上游异步处理中（含人脸识别等），继续轮询 |
+| `active` | 可用，可写入 `asset://` 参与视频生成 |
+| `failed` | 处理失败，请检查素材规格后重新上传 |
+
+> 网关会验证素材所有权，只能使用自己上传的素材。

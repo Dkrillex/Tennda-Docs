@@ -1,13 +1,23 @@
 ---
 title: '创建素材组（真人）'
 description: 'POST /v1/visual-validate/session（liveness_face）'
-api: 'POST https://api.tennda.ai/v1/visual-validate/session'
+api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
 ---
 
 ## 简介
 
-为真人出镜素材创建 `liveness_face` 素材组并返回 H5 核验链接。用户完成核验后素材方可用于 Seedance 2.0 生成。
+真人素材库（`group_type: liveness_face`）**不能**通过 [创建素材组](/cn/api-reference/endpoint/seedance-2.0/create-asset-group) 直接创建，须先在本接口发起 H5 真人核验，用户完成核验后网关落库素材组。
 
+| 库类型 | `group_type` | 创建方式 |
+|--------|--------------|----------|
+| 虚拟素材库 | `aigc` | `POST /v1/asset-groups` |
+| 真人素材库 | `liveness_face` | 本接口 H5 核验 |
+
+同一用户下虚拟组与真人组各最多 **100** 个，配额独立。核验通过后向该组追加图/视/音素材与虚拟库相同，走 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset)，**不再触发人脸比对**（首次创建组时仍以真人正脸完成核验）。
+
+<Note>
+  火山方舟 `CreateVisualValidateSession` 本身不接受 `name` / `description`；网关在拿到上游 `GroupId` 后会立刻调用 `UpdateAssetGroup` 将这两个字段回写到火山控制台。
+</Note>
 
 ## 认证
 
@@ -15,32 +25,122 @@ api: 'POST https://api.tennda.ai/v1/visual-validate/session'
   Bearer Token，如 `Bearer sk-xxxxxxxxxx`
 </ParamField>
 
+<ParamField header="Content-Type" type="string">
+  `application/json`
+</ParamField>
+
 ## 请求参数
 
 <ParamField body="name" type="string" required>
-  素材组名称
+  素材组名称（用于落库并回写火山方舟控制台）
 </ParamField>
 
 <ParamField body="description" type="string">
-  描述
+  描述；省略或空串时用 API Key 所属用户 `username` 兜底（与 [创建素材组](/cn/api-reference/endpoint/seedance-2.0/create-asset-group) 一致）
 </ParamField>
 
-<ParamField body="callback_url" type="string">
-  业务回调地址（可选）
+<ParamField body="channel_id" type="integer">
+  上游渠道 ID，省略则自动选择
 </ParamField>
+
+## H5 核验流程
+
+```
+1. 客户端发起核验  → POST /v1/visual-validate/session
+   ↓ 返回 { h5_link, state, ... }
+2. 客户端 popup 打开 h5_link，用户完成核验
+   ↓ BytePlus 重定向至网关 /asset-validate-callback.html?state=…&bytedToken=…&resultCode=10000
+3. 回调页自动 fetch /v1/visual-validate/result，落库 group_type=liveness_face
+   ↓ window.opener.postMessage({ type: 'gravitex-asset-validate-result', ok, group_id, … })
+4. 客户端拿到 group_id，后续上传素材复用 POST /v1/assets（支持 Image / Video / Audio）
+```
+
+业务侧**无需**直接调用 `POST /v1/visual-validate/result`；`state` 由网关内置回调页自动转发。
 
 ## 请求示例
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
+curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "真人角色A",
-    "description": "出镜核验"
-  }'
+  -d '{"name": "真人A"}'
 ```
 
-## 响应说明
+## 响应示例
 
-返回 `group_id`、`validate_url` 等字段。引导用户在 H5 完成核验后，用 [列出素材组](/cn/api-reference/endpoint/seedance-2.0/list-asset-groups)（`group_type=liveness_face`）与 [查询单个素材](/cn/api-reference/endpoint/seedance-2.0/get-asset) 确认状态。
+```json
+{
+  "h5_link": "https://verify.byteplus.com/h5/?token=…&lang=zh-CN&lng=zh",
+  "state": "<base64url>.<hmac>",
+  "channel_id": 123,
+  "byted_token": "bp-token-xxxxxxxx",
+  "expires_in": 900
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `h5_link` | BytePlus 真人核验 H5 页面 URL；网关已附加 `lang=zh-CN&lng=zh` 默认简体中文 |
+| `state` | 网关签发的 HMAC-SHA256 令牌，已绑定 `user` / `channel` / `group_name` / `byted_token`，供回调页换取结果 |
+| `byted_token` | 火山方舟本次核验唯一凭据；回调页会与 `state` 内值比对 |
+| `channel_id` | 实际选中的上游渠道 |
+| `expires_in` | **`state` 令牌有效期（秒）**，固定 `900`（15 分钟）。**不是 H5 页面寿命**——BytePlus H5 链接约 **120 秒**内有效，超时须重新调用本接口 |
+
+<Warning>
+  客户端通常只需在 popup 中打开 `h5_link` 并监听 `window.message`。H5 超时后请关闭 popup、移除监听，并重新 `POST /v1/visual-validate/session` 获取新链接；建议在客户端设置约 **130s** 超时兜底。
+</Warning>
+
+## 客户端 postMessage
+
+回调页（`/asset-validate-callback.html`）向 `window.opener` 投递消息（`targetOrigin = '*'`）。回调页与主页若不同源，建议通过 `type` 字段识别，而非仅依赖 `event.origin`。
+
+**核验成功：**
+
+```json
+{
+  "type": "gravitex-asset-validate-result",
+  "ok": true,
+  "group_id": "group-20260512083014-zyxwv",
+  "name": "真人A",
+  "channel_id": 123,
+  "group_type": "liveness_face"
+}
+```
+
+**核验失败：**
+
+```json
+{
+  "type": "gravitex-asset-validate-result",
+  "ok": false,
+  "result_code": "10003",
+  "error": "真人核验未通过：人脸与底图不匹配"
+}
+```
+
+**最小集成示例：**
+
+```js
+const popup = window.open(session.h5_link, 'asset-validate', 'width=480,height=720');
+
+const listener = (event) => {
+  const data = event.data;
+  if (!data || data.type !== 'gravitex-asset-validate-result') return;
+
+  window.removeEventListener('message', listener);
+  if (data.ok) {
+    console.log('素材组创建成功:', data.group_id);
+  } else {
+    console.error('核验失败:', data.error, data.result_code);
+  }
+};
+window.addEventListener('message', listener);
+```
+
+## 后续步骤
+
+1. 使用返回的 `group_id`（来自 postMessage，**非**本接口同步响应）调用 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset)  
+2. 轮询 [列出素材](/cn/api-reference/endpoint/seedance-2.0/list-assets) 或 [查询单个素材](/cn/api-reference/endpoint/seedance-2.0/get-asset) 直至 `status: active`  
+3. 在 [创建视频生成任务](/cn/api-reference/endpoint/seedance-2.0/create-video-generation) 中用 `asset://` 引用素材  
+
+也可用 [列出素材组](/cn/api-reference/endpoint/seedance-2.0/list-asset-groups)（`?group_type=liveness_face`）确认组已创建。

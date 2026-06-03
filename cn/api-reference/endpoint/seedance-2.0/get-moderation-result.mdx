@@ -1,13 +1,16 @@
 ---
 title: '查询审核拦截原因'
 description: 'Seedance 2.0 GET /v1/video/generations/moderation-result/{task_id}'
-api: 'GET https://api.tennda.ai/v1/video/generations/moderation-result/{task_id}'
+api: 'GET https://api.gravitex.ai/v1/video/generations/moderation-result/{task_id}'
 ---
 
 ## 简介
 
-当 Seedance 2.0 任务因内容安全、版权等原因 `failed` 时，可查询上游审核分类详情。需渠道白名单；创建后 14 天内有效，首次查询结果会缓存。
+当 Seedance 2.0 任务因**内容安全 / 版权 / 公众人物 / 真人脸**等策略 `failed` 时，`GET /v1/video/generations/{task_id}` 的错误信息较笼统，可调用本接口查询上游具体拦截分类。
 
+<Warning>
+  **本接口默认关闭**——需 BytePlus 白名单授权。请联系火山方舟商务申请，并由平台管理员在渠道「BytePlus 素材库配置」中启用「审核拦截原因查询」。未开通返回 `403 channel_not_whitelisted`。
+</Warning>
 
 ## 认证
 
@@ -21,14 +24,76 @@ api: 'GET https://api.tennda.ai/v1/video/generations/moderation-result/{task_id}
   失败任务的 `task_id`（仅 `seedance-2-0` / `seedance-2-0-fast`）
 </ParamField>
 
+## 限制
+
+| 限制 | 说明 |
+|------|------|
+| 模型 | 仅 seedance-2-0 系列失败任务 |
+| 时间窗口 | 创建后 **14 天内**；超时 `400 query_window_expired` |
+| 任务状态 | 仅 `failed` 有意义；其他状态 `400 invalid_task_status` |
+| 归属 | 仅能查本 token 创建的任务 |
+| 频率 | 每渠道 **10 QPM**；超限 `429 rate_limited` |
+| 缓存 | 首次查询成功后持久化，重复查询带 `"cached": true`，不消耗 QPM |
+
 ## 请求示例
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/video/generations/moderation-result/ut-abc123" \
+curl "https://api.gravitex.ai/v1/video/generations/moderation-result/cgt-20260430135030-xxxxx" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 
-## 常用说明
+## 响应示例
 
-- 未开通白名单可能返回 403  
-- 仅适用于审核类失败，非所有 `failed` 均有记录  
+```json
+{
+  "task_id": "cgt-20260430135030-xxxxx",
+  "block_reasons": [
+    {
+      "label": "Celebrity",
+      "sub_label": "Celebrity",
+      "detail": "Potentially contains Public Figures."
+    },
+    {
+      "label": "Copyright",
+      "sub_label": "IP",
+      "detail": "Potential copyright restriction. Potentially related content: Spider-Man: Homecoming-Peter Parker"
+    }
+  ],
+  "cached": false,
+  "queried_at": 1715140800
+}
+```
+
+### block_reasons 字段
+
+| 字段 | 说明 |
+|------|------|
+| `label` | 大类：`Safety` / `Copyright` / `Celebrity` / `Deepfake` |
+| `sub_label` | 子类：`Safety`；`Copyright` 下 `IP` / `Other`；`Celebrity`；`Deepfake` 下 `RealHuman` |
+| `detail` | 自然语言描述，可能含具体 IP 或公众人物名称 |
+
+## 常见错误
+
+| HTTP | `error.type` | 含义 |
+|------|--------------|------|
+| `400` | `invalid_request` | 缺少 `task_id` |
+| `400` | `invalid_task_status` | 任务不是 `failed`，无拦截原因可查 |
+| `400` | `unsupported_model` | 任务不属于 seedance-2-0 系列 |
+| `400` | `query_window_expired` | 任务已超出 14 天可查询窗口 |
+| `403` | `channel_not_whitelisted` | 渠道未开启审核拦截原因查询 |
+| `404` | `not_found` | 任务不存在，或上游 `NotFound.Id`（未被审核拦截 / ID 无效 / 渠道未真正进入白名单） |
+| `429` | `rate_limited` | 当前渠道 10 QPM 限流，请稍后重试 |
+| `502` | `upstream_error` | 上游非 404 错误，详见 `error.message` |
+
+错误体格式与其他接口一致，例如未开通白名单：
+
+```json
+{
+  "error": {
+    "message": "moderation query is not enabled on this channel; please contact admin to apply for BytePlus whitelist activation",
+    "type": "channel_not_whitelisted"
+  }
+}
+```
+
+> 若 `block_reasons` 为空数组，表示任务失败但**未被审核策略拦截**（可能是其他原因导致 `failed`）。

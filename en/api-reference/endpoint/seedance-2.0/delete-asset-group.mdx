@@ -1,13 +1,12 @@
 ---
 title: 'Delete asset group'
 description: 'DELETE /v1/asset-groups/{group_id}'
-api: 'DELETE https://api.tennda.ai/v1/asset-groups/{group_id}'
+api: 'DELETE https://api.gravitex.ai/v1/asset-groups/{group_id}'
 ---
 
 ## Introduction
 
-Deletes the group and all assets inside it.
-
+Deletes the asset group and **cascades** deletion to all assets inside (upstream + local mapping).
 
 ## Authentication
 
@@ -18,12 +17,12 @@ Deletes the group and all assets inside it.
 ## Path parameters
 
 <ParamField path="group_id" type="string" required>
-  Asset group ID
+  Asset group ID (from create group or H5 validation postMessage)
 </ParamField>
 
 ## Example
 
 ```bash
-curl -X DELETE "https://api.tennda.ai/v1/asset-groups/group-20260508120000-abcde" \
+curl -X DELETE "https://api.gravitex.ai/v1/asset-groups/group-20260508120000-abcde" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```

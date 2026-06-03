@@ -1,12 +1,14 @@
 ---
 title: "Get video generation"
 description: "Seedance 2.0 GET /v1/video/generations/{task_id}"
-api: "GET https://api.tennda.ai/v1/video/generations/{task_id}"
+api: "GET https://api.gravitex.ai/v1/video/generations/{task_id}"
 ---
 
 ## Introduction
 
-Poll task status and result by `task_id`. Query every ~5 seconds.
+Poll task status and result by `task_id`. Query every **~5 seconds**; generation usually completes in **30–120 seconds**.
+
+Flow: `queued` → `in_progress` → `completed` / `failed`
 
 ## Authentication
 
@@ -17,13 +19,13 @@ Poll task status and result by `task_id`. Query every ~5 seconds.
 ## Path parameters
 
 <ParamField path="task_id" type="string" required>
-  `task_id` from create response
+  `id` or `task_id` from the create response
 </ParamField>
 
 ## Example
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
+curl -X GET "https://api.gravitex.ai/v1/video/generations/ut-abc123def456" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 
@@ -32,6 +34,55 @@ curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
 | status | Meaning |
 | --- | --- |
 | `queued` | Queued |
-| `in_progress` | Generating |
+| `in_progress` | Generating; check `progress` |
 | `completed` | Success; read `video_url` or `url` |
-| `failed` | See `error`; optional [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result) |
+| `failed` | See `error.message`; moderation failures: [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result) |
+
+## Response examples
+
+**In progress:**
+
+```json
+{
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
+  "object": "video",
+  "model": "seedance-2-0",
+  "status": "in_progress",
+  "progress": 50,
+  "created_at": 1712563200
+}
+```
+
+**Completed:**
+
+```json
+{
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
+  "status": "completed",
+  "progress": 100,
+  "video_url": "https://uptoken.cc/v1/media/proxy?...",
+  "url": "https://uptoken.cc/v1/media/proxy?...",
+  "created_at": 1712563200,
+  "completed_at": 1712563320,
+  "metadata": {
+    "status": "succeeded",
+    "usage": { "total_tokens": 97605 }
+  }
+}
+```
+
+**Failed:**
+
+```json
+{
+  "id": "ut-abc123def456",
+  "status": "failed",
+  "progress": 100,
+  "error": {
+    "message": "Content moderation failed",
+    "code": "failed"
+  }
+}
+```

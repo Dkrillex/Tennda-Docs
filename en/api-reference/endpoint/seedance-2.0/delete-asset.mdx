@@ -1,13 +1,12 @@
 ---
 title: 'Delete asset'
 description: 'DELETE /v1/assets/{virtual_id}'
-api: 'DELETE https://api.tennda.ai/v1/assets/{virtual_id}'
+api: 'DELETE https://api.gravitex.ai/v1/assets/{virtual_id}'
 ---
 
 ## Introduction
 
-Delete one asset.
-
+Delete one asset (upstream + local mapping).
 
 ## Authentication
 
@@ -24,6 +23,15 @@ Delete one asset.
 ## Example
 
 ```bash
-curl -X DELETE "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+curl -X DELETE "https://api.gravitex.ai/v1/assets/asset-20260508120145-pqwhc" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## Response
+
+```json
+{
+  "deleted": true,
+  "virtual_id": "asset-20260508120145-pqwhc"
+}
 ```

@@ -1,18 +1,21 @@
 ---
 title: 'Create video generation'
 description: 'Seedance 2.0 POST /v1/video/generations'
-api: 'POST https://api.tennda.ai/v1/video/generations'
+api: 'POST https://api.gravitex.ai/v1/video/generations'
 ---
 
 ## Introduction
 
-Submit an async Seedance 2.0 job; returns `task_id` for polling. Use `content` or a simplified `prompt`.
-
+Submit an async Seedance 2.0 job; returns `task_id` for polling. Provide at least one of `content` or `prompt`; `content` is recommended.
 
 ## Authentication
 
 <ParamField header="Authorization" type="string" required>
   Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+<ParamField header="Content-Type" type="string">
+  `application/json`
 </ParamField>
 
 ## Request body
@@ -22,29 +25,77 @@ Submit an async Seedance 2.0 job; returns `task_id` for polling. Use `content` o
 </ParamField>
 
 <ParamField body="content" type="array">
-  Multimodal items: `text`, `image_url`, `video_url`, `audio_url`, etc.
+  Multimodal array (see below); at least one of `content` or `prompt` required
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  Alternative to `content`
+  Text prompt; simplified alternative to `content`
 </ParamField>
 
 <ParamField body="duration" type="integer" default="5">
-  4–15 seconds, or `-1` for auto
+  `-1` (auto) or `4`–`15` seconds
 </ParamField>
 
 <ParamField body="resolution" type="string" default="720p">
-  `480p`, `720p`, `1080p` (fast: no 1080p)
+  `480p`, `720p`; standard also supports `1080p` (fast: no `1080p`)
 </ParamField>
 
 <ParamField body="ratio" type="string" default="16:9">
-  `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`, `adaptive`
+  `16:9`, `9:16`, `1:1`, `4:3`, `3:4`, `21:9`, `adaptive` (recommended with first-frame images; **not available in reference-image/video mode**)
 </ParamField>
 
-## Example
+<ParamField body="generate_audio" type="boolean" default="true">
+  Auto-generate audio; set `false` when using `reference_audio`
+</ParamField>
+
+<ParamField body="watermark" type="boolean" default="false">
+  Add watermark
+</ParamField>
+
+<ParamField body="seed" type="integer" default="-1">
+  Random seed; `-1` for random; fixed positive integer for reproducibility
+</ParamField>
+
+## content array
+
+| type | role | Description | Limit |
+|------|------|-------------|-------|
+| `text` | — | Text prompt | 1 |
+| `image_url` | (omit) | Defaults to first frame | 1 |
+| `image_url` | `first_frame` | First frame | 1 |
+| `image_url` | `last_frame` | Last frame (requires `first_frame`) | 1 |
+| `image_url` | `reference_image` | Reference images | up to 9 |
+| `video_url` | `reference_video` | Reference videos | up to 3 |
+| `audio_url` | `reference_audio` | Reference audio (requires image/video) | up to 3 |
+
+**Rules:** `first_frame` and `reference_image` are mutually exclusive; `last_frame` requires `first_frame`.
+
+<Warning>
+  **`asset://` must match `asset_type`:** `Image` → `image_url`; `Video` → `video_url`; `Audio` → `audio_url`. Putting audio in `image_url` returns `InvalidParameter`.
+</Warning>
+
+| Asset `asset_type` | `type` | Field | `role` |
+|---|---|---|---|
+| `Image` | `image_url` | `image_url.url` | `reference_image` / `first_frame` / `last_frame` |
+| `Video` | `video_url` | `video_url.url` | `reference_video` |
+| `Audio` | `audio_url` | `audio_url.url` | `reference_audio` |
+
+## Direct URL limits in content
+
+When passing http(s) URLs directly in `content` (not `asset://`), resources must meet these limits. `asset://` references share the same numeric limits; asset library images allow more formats—see [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset).
+
+| Type | Main limits |
+|------|-------------|
+| Image | JPEG / PNG / WebP, ≤ 30MB, 300–6000px; up to 9 `reference_image`; 1 first/last frame each |
+| Video | MP4 / MOV, ≤ 50MB, 2–15s per clip, up to 3 `reference_video`, total ≤ 15s |
+| Audio | WAV / MP3, ≤ 15MB, 2–15s per clip, up to 3; requires image or video input |
+
+## Examples
+
+**Text-to-video:**
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/video/generations" \
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -59,20 +110,87 @@ curl -X POST "https://api.tennda.ai/v1/video/generations" \
   }'
 ```
 
-With asset library:
+**Simplified `prompt` (text-to-video):**
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/video/generations" \
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "prompt": "Golden hour drone shot over mountains",
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9"
+  }'
+```
+
+**Image-to-video (first frame):**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "seedance-2-0",
     "content": [
-      {"type": "text", "text": "Girl dancing on the beach"},
-      {"type": "image_url", "image_url": {"url": "asset://asset-xxx"}, "role": "reference_image"}
+      {"type": "text", "text": "Camera slowly pushes in, petals falling"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/garden.jpg"}}
     ],
-    "duration": 5
+    "ratio": "adaptive"
   }'
+```
+
+**Image-to-video (first and last frame):**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "Time-lapse from sunrise to sunset"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/sunrise.jpg"}, "role": "first_frame"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/sunset.jpg"}, "role": "last_frame"}
+    ],
+    "duration": 10,
+    "ratio": "adaptive"
+  }'
+```
+
+**Asset library + multimodal:**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "Asset 1 sings with asset 2"},
+      {"type": "image_url", "image_url": {"url": "asset://asset-xxx-image"}, "role": "reference_image"},
+      {"type": "audio_url", "audio_url": {"url": "asset://asset-xxx-audio"}, "role": "reference_audio"}
+    ],
+    "duration": 5,
+    "generate_audio": false
+  }'
+```
+
+> Only `active` assets may be used; all referenced assets must belong to the same asset group.
+
+## Response
+
+```json
+{
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
+  "object": "video",
+  "model": "seedance-2-0",
+  "status": "queued",
+  "progress": 0,
+  "created_at": 1712563200
+}
 ```
 
 Next: [Get video generation](/en/api-reference/endpoint/seedance-2.0/get-video-generation)

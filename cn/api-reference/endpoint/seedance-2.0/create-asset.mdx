@@ -1,13 +1,18 @@
 ---
 title: '创建素材'
 description: 'POST /v1/assets'
-api: 'POST https://api.tennda.ai/v1/assets'
+api: 'POST https://api.gravitex.ai/v1/assets'
 ---
 
 ## 简介
 
-在素材组内创建素材。仅支持公网 **https URL**，不支持 Base64。创建后 `status` 为 `processing`，需轮询至 `active` 后再用于 `asset://`。
+在素材组内创建素材。`Content-Type: application/json`，**仅支持公网 https URL**（BytePlus 须能直接拉取），不支持 Base64 / Data URI / multipart 直传。本地文件请先上传至 OSS / TOS / S3 等对象存储。
 
+虚拟（`aigc`）与真人（`liveness_face`）素材库均支持 `Image` / `Video` / `Audio`。创建后 `status` 为 `pending`，轮询至 `active`（通常 1~3 分钟）后再用于 `asset://`。
+
+<Note>
+  火山方舟 `CreateAsset` 自 2026 年起已下线 Base64 直传。详见 [Create an Asset](https://docs.byteplus.com/en/docs/ModelArk/CreateAsset)。
+</Note>
 
 ## 认证
 
@@ -17,44 +22,95 @@ api: 'POST https://api.tennda.ai/v1/assets'
 
 ## 请求参数
 
-<ParamField body="group_id" type="string" required>
-  素材组 ID
-</ParamField>
-
-<ParamField body="asset_type" type="string" required>
-  `image`、`video`、`audio`
-</ParamField>
-
 <ParamField body="url" type="string" required>
-  公网 https 资源地址
+  公网 https 资源地址；网关原样透传给上游
+</ParamField>
+
+<ParamField body="group_id" type="string" required>
+  素材组 ID（来自 [创建素材组](/cn/api-reference/endpoint/seedance-2.0/create-asset-group) 或 [创建素材组（真人）](/cn/api-reference/endpoint/seedance-2.0/create-visual-validate-session)）
+</ParamField>
+
+<ParamField body="asset_type" type="string" default="Image">
+  `Image` / `Video` / `Audio`，大小写不敏感
 </ParamField>
 
 <ParamField body="name" type="string">
-  素材名称
+  素材名称（≤ 64 字符，仅用于展示与列表搜索，不参与模型推理）
 </ParamField>
+
+## 格式与大小约束
+
+#### 图片 (`Image`)
+
+| 项目 | 限制 |
+|------|------|
+| 格式 | jpeg / png / webp / bmp / tiff / gif / heic / heif |
+| 大小 | &lt; 30 MB |
+| 长宽比 | 0.4 ~ 2.5 |
+| 宽高 | 300 ~ 6000 px |
+
+#### 视频 (`Video`)
+
+| 项目 | 限制 |
+|------|------|
+| 格式 | mp4 / mov |
+| 大小 | ≤ 50 MB |
+| 分辨率 | 480p、720p（不支持 1080p+） |
+| 时长 | 2 ~ 15 秒 |
+| FPS | 24 ~ 60 |
+| 长宽比 | 0.4 ~ 2.5 |
+| 宽高 | 300 ~ 6000 px |
+| 总像素（W×H） | 409600 ~ 927408 |
+
+#### 音频 (`Audio`)
+
+| 项目 | 限制 |
+|------|------|
+| 格式 | mp3 / wav |
+| 大小 | ≤ 15 MB |
+| 时长 | 2 ~ 15 秒 |
+
+> 网关仅做 URL 后缀校验；尺寸/时长等由 BytePlus 异步完成，不达标时 `status` 变为 `failed`。
 
 ## 请求示例
 
+图片、视频、音频请求体结构相同，仅 `asset_type` 与 URL 不同：
+
 ```bash
-curl -X POST "https://api.tennda.ai/v1/assets" \
+# 图片
+curl -X POST "https://api.gravitex.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
-  -d '{
-    "group_id": "group-20260508120000-abcde",
-    "asset_type": "image",
-    "url": "https://example.com/face.jpg",
-    "name": "参考图"
-  }'
+  -d '{"url":"https://your-cdn.com/portrait.jpg","group_id":"group-xxx","asset_type":"Image","name":"portrait.jpg"}'
+
+# 视频
+curl -X POST "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-cdn.com/dance.mp4","group_id":"group-xxx","asset_type":"Video","name":"dance.mp4"}'
+
+# 音频
+curl -X POST "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-cdn.com/voice.mp3","group_id":"group-xxx","asset_type":"Audio","name":"voice.mp3"}'
 ```
 
 ## 响应示例
 
 ```json
 {
-  "virtual_id": "asset-20260508120001-xyz",
-  "status": "processing",
-  "asset_type": "image"
+  "virtual_id": "asset-20260508120145-pqwhc",
+  "asset_url": "asset://asset-20260508120145-pqwhc",
+  "group_id": "group-20260508120000-abcde",
+  "asset_type": "Image",
+  "status": "pending"
 }
 ```
 
-生成任务中使用：`asset://asset-20260508120001-xyz`（映射到对应 `image_url` / `video_url` / `audio_url`）。
+| 字段 | 说明 |
+|------|------|
+| `asset_url` | 视频生成时在 `content` 中引用（按 `asset_type` 映射字段） |
+| `status` | `pending` → `active` / `failed` |
+
+下一步：[列出素材](/cn/api-reference/endpoint/seedance-2.0/list-assets) 或 [查询单个素材](/cn/api-reference/endpoint/seedance-2.0/get-asset) 轮询状态。

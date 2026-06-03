@@ -1,13 +1,12 @@
 ---
 title: '列出素材'
 description: 'GET /v1/assets'
-api: 'GET https://api.tennda.ai/v1/assets'
+api: 'GET https://api.gravitex.ai/v1/assets'
 ---
 
 ## 简介
 
-列出素材，可按素材组筛选。
-
+列出当前用户素材，并自动刷新处理中素材的上游状态。
 
 ## 认证
 
@@ -18,12 +17,49 @@ api: 'GET https://api.tennda.ai/v1/assets'
 ## 查询参数
 
 <ParamField query="group_id" type="string">
-  按素材组 ID 筛选
+  按素材组 ID 筛选；**指定后忽略 `group_type`**
+</ParamField>
+
+<ParamField query="group_type" type="string" default="aigc">
+  `aigc`、`liveness_face` 或 `all`。**未传时默认仅返回虚拟素材库下的素材**
 </ParamField>
 
 ## 请求示例
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/assets?group_id=group-20260508120000-abcde" \
+# 默认：虚拟素材库
+curl "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# 指定素材组
+curl "https://api.gravitex.ai/v1/assets?group_id=group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# 真人素材库全部
+curl "https://api.gravitex.ai/v1/assets?group_type=liveness_face" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
+
+## 响应示例
+
+```json
+{
+  "assets": [
+    {
+      "virtual_id": "asset-20260508120145-pqwhc",
+      "asset_url": "asset://asset-20260508120145-pqwhc",
+      "group_id": "group-20260508120000-abcde",
+      "url": "https://signed-url.example.com/...",
+      "filename": "portrait.jpg",
+      "asset_type": "Image",
+      "status": "active",
+      "created_at": 1715140800
+    }
+  ],
+  "total": 1
+}
+```
+
+<Note>
+  响应中的 `url` 为上游临时签名 URL（约 12 小时），仅用于预览。**视频生成须使用 `asset_url`（`asset://`），不要使用 `url`。**
+</Note>

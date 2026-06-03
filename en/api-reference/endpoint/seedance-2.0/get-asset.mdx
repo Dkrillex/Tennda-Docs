@@ -1,13 +1,12 @@
 ---
 title: 'Get asset'
 description: 'GET /v1/assets/{virtual_id}'
-api: 'GET https://api.tennda.ai/v1/assets/{virtual_id}'
+api: 'GET https://api.gravitex.ai/v1/assets/{virtual_id}'
 ---
 
 ## Introduction
 
-Get one asset and processing status. Confirm `status: active` before video generation.
-
+Get one asset and refresh upstream processing status. Confirm `status: active` before video generation.
 
 ## Authentication
 
@@ -18,13 +17,13 @@ Get one asset and processing status. Confirm `status: active` before video gener
 ## Path parameters
 
 <ParamField path="virtual_id" type="string" required>
-  Virtual asset ID (e.g. `asset-xxx`)
+  Asset ID (e.g. `asset-20260508120145-pqwhc`; matches the part after `asset://`)
 </ParamField>
 
 ## Example
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+curl "https://api.gravitex.ai/v1/assets/asset-20260508120145-pqwhc" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 
@@ -32,6 +31,8 @@ curl -X GET "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
 
 | status | Meaning |
 |--------|---------|
-| `processing` | Keep polling |
-| `active` | Ready for `asset://` |
-| `failed` | Processing failed |
+| `pending` | Upstream processing (including face recognition); keep polling |
+| `active` | Ready for `asset://` in video generation |
+| `failed` | Processing failed; check specs and re-upload |
+
+> The gateway verifies asset ownership; you can only use assets you uploaded.

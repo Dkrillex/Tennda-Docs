@@ -1,13 +1,23 @@
 ---
 title: 'Create asset group (liveness)'
 description: 'POST /v1/visual-validate/session (liveness_face)'
-api: 'POST https://api.tennda.ai/v1/visual-validate/session'
+api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
 ---
 
 ## Introduction
 
-Create a `liveness_face` asset group and H5 validation URL. Assets are usable in Seedance 2.0 after the user completes validation.
+Live-person asset groups (`group_type: liveness_face`) **cannot** be created via [Create asset group](/en/api-reference/endpoint/seedance-2.0/create-asset-group). Call this endpoint first to start H5 liveness validation; the gateway persists the group after the user completes validation.
 
+| Library | `group_type` | How to create |
+|---------|--------------|---------------|
+| Virtual | `aigc` | `POST /v1/asset-groups` |
+| Live person | `liveness_face` | H5 validation via this endpoint |
+
+Up to **100** groups per user for virtual and live-person libraries (separate quotas). After validation, adding image/video/audio assets works the same as the virtual library via [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset)—**no further face matching** (the initial group creation still requires live face validation).
+
+<Note>
+  BytePlus `CreateVisualValidateSession` does not accept `name` or `description`. After receiving upstream `GroupId`, the gateway calls `UpdateAssetGroup` to write those fields back to the BytePlus console.
+</Note>
 
 ## Authentication
 
@@ -15,27 +25,122 @@ Create a `liveness_face` asset group and H5 validation URL. Assets are usable in
   Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
 </ParamField>
 
+<ParamField header="Content-Type" type="string">
+  `application/json`
+</ParamField>
+
 ## Request body
 
 <ParamField body="name" type="string" required>
-  Group name
+  Asset group name (stored and synced to the BytePlus console)
 </ParamField>
 
 <ParamField body="description" type="string">
-  Description
+  Description; defaults to API key user `username` if omitted or empty (same as [Create asset group](/en/api-reference/endpoint/seedance-2.0/create-asset-group))
 </ParamField>
 
-<ParamField body="callback_url" type="string">
-  Business callback URL (optional)
+<ParamField body="channel_id" type="integer">
+  Upstream channel ID; auto-selected if omitted
 </ParamField>
+
+## H5 validation flow
+
+```
+1. Client starts validation  → POST /v1/visual-validate/session
+   ↓ returns { h5_link, state, ... }
+2. Client opens h5_link in a popup; user completes validation
+   ↓ BytePlus redirects to gateway /asset-validate-callback.html?state=…&bytedToken=…&resultCode=10000
+3. Callback page fetches /v1/visual-validate/result; persists group_type=liveness_face
+   ↓ window.opener.postMessage({ type: 'gravitex-asset-validate-result', ok, group_id, … })
+4. Client receives group_id; upload assets via POST /v1/assets (Image / Video / Audio)
+```
+
+Your application **does not** need to call `POST /v1/visual-validate/result` directly; the gateway callback page forwards `state` automatically.
 
 ## Example
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
+curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
-  -d '{"name": "Live character A", "description": "Face validation"}'
+  -d '{"name": "Live person A"}'
 ```
 
-Returns `group_id`, `validate_url`, etc. After H5, use [List asset groups](/en/api-reference/endpoint/seedance-2.0/list-asset-groups) (`group_type=liveness_face`) and [Get asset](/en/api-reference/endpoint/seedance-2.0/get-asset).
+## Response
+
+```json
+{
+  "h5_link": "https://verify.byteplus.com/h5/?token=…&lang=zh-CN&lng=zh",
+  "state": "<base64url>.<hmac>",
+  "channel_id": 123,
+  "byted_token": "bp-token-xxxxxxxx",
+  "expires_in": 900
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `h5_link` | BytePlus H5 liveness URL; gateway appends `lang=zh-CN&lng=zh` for Simplified Chinese by default |
+| `state` | Gateway-issued HMAC-SHA256 token bound to `user` / `channel` / `group_name` / `byted_token`; used by the callback page to fetch results |
+| `byted_token` | BytePlus credential for this validation session; verified against the value inside `state` on callback |
+| `channel_id` | Selected upstream channel |
+| `expires_in` | **`state` token TTL in seconds**, fixed at `900` (15 minutes). **Not the H5 page lifetime**—the BytePlus H5 link is valid for about **120 seconds**; call this endpoint again after expiry |
+
+<Warning>
+  Clients typically only need to open `h5_link` in a popup and listen for `window.message`. On H5 timeout, close the popup, remove the listener, and call `POST /v1/visual-validate/session` again for a new link. Consider a client-side timeout of about **130s** as a fallback.
+</Warning>
+
+## Client postMessage
+
+The callback page (`/asset-validate-callback.html`) posts to `window.opener` (`targetOrigin = '*'`). If the callback page and parent are on different origins, identify messages by `type` rather than relying only on `event.origin`.
+
+**Success:**
+
+```json
+{
+  "type": "gravitex-asset-validate-result",
+  "ok": true,
+  "group_id": "group-20260512083014-zyxwv",
+  "name": "Live person A",
+  "channel_id": 123,
+  "group_type": "liveness_face"
+}
+```
+
+**Failure:**
+
+```json
+{
+  "type": "gravitex-asset-validate-result",
+  "ok": false,
+  "result_code": "10003",
+  "error": "Liveness validation failed: face does not match reference"
+}
+```
+
+**Minimal integration:**
+
+```js
+const popup = window.open(session.h5_link, 'asset-validate', 'width=480,height=720');
+
+const listener = (event) => {
+  const data = event.data;
+  if (!data || data.type !== 'gravitex-asset-validate-result') return;
+
+  window.removeEventListener('message', listener);
+  if (data.ok) {
+    console.log('Asset group created:', data.group_id);
+  } else {
+    console.error('Validation failed:', data.error, data.result_code);
+  }
+};
+window.addEventListener('message', listener);
+```
+
+## Next steps
+
+1. Use `group_id` from postMessage (**not** from this endpoint’s synchronous response) with [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset)  
+2. Poll [List assets](/en/api-reference/endpoint/seedance-2.0/list-assets) or [Get asset](/en/api-reference/endpoint/seedance-2.0/get-asset) until `status: active`  
+3. Reference assets with `asset://` in [Create video generation](/en/api-reference/endpoint/seedance-2.0/create-video-generation)  
+
+You can also confirm the group via [List asset groups](/en/api-reference/endpoint/seedance-2.0/list-asset-groups) (`?group_type=liveness_face`).

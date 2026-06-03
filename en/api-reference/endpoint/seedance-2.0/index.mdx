@@ -5,22 +5,29 @@ description: 'Doubao Seedance 2.0 video generation and asset library'
 
 ## Introduction
 
-Seedance 2.0 (`seedance-2-0` / `seedance-2-0-fast`) supports text-to-video, image-to-video, multi-modal references, and an asset library (`asset://`). This page is the series overview; each endpoint has its own page below.
+Seedance 2.0 supports text-to-video, image-to-video (first/last frame), multi-modal references, and a face-consistency asset library. Unified access via Gravitex AI gateway; Base URL: `https://api.gravitex.ai`.
 
-<Note>
-  Map each `asset://` by `asset_type` to `image_url`, `video_url`, or `audio_url`. Assets must be created from public **https** URLs only (no Base64 upload).
-</Note>
+| Model ID | Description | Resolution |
+|----------|-------------|------------|
+| `seedance-2-0` | Standard; production quality | `480p`, `720p`, `1080p` |
+| `seedance-2-0-fast` | Fast iteration | `480p`, `720p` (**no 1080p**) |
 
 ## Authentication
 
-All endpoints: `Authorization: Bearer sk-xxxxxxxxxx`
+All endpoints: `Authorization: Bearer sk-xxxxxxxxxx`, `Content-Type: application/json`.
 
-## Models
+<Note>
+  Map each `asset://` by `asset_type` to `image_url`, `video_url`, or `audio_url`—do not put everything in `image_url`. Assets must be created from public **https** URLs only (no Base64 / Data URI).
+</Note>
 
-| Model ID | Description |
-|----------|-------------|
-| `seedance-2-0` | Standard; `480p` / `720p` / `1080p` |
-| `seedance-2-0-fast` | Fast; `480p` / `720p` (no 1080p) |
+## Asset library types
+
+| Library | `group_type` | Creation |
+|---------|--------------|----------|
+| Virtual | `aigc` | [Create asset group](/en/api-reference/endpoint/seedance-2.0/create-asset-group) |
+| Live person | `liveness_face` | [Create asset group (liveness)](/en/api-reference/endpoint/seedance-2.0/create-visual-validate-session) H5 validation |
+
+Recommended: create group → [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset) → poll until `status: active` → [Create video generation](/en/api-reference/endpoint/seedance-2.0/create-video-generation) → [Get video generation](/en/api-reference/endpoint/seedance-2.0/get-video-generation).
 
 ## Endpoints
 
@@ -72,11 +79,27 @@ All endpoints: `Authorization: Bearer sk-xxxxxxxxxx`
   </Card>
 </CardGroup>
 
+<Note>
+  `POST /v1/visual-validate/result` is for the H5 callback page only; applications should not call it directly.
+</Note>
+
 ## Recommended flow
 
-1. Optional: create asset group → create asset → poll until `status: active`  
+1. Optional: create group → create asset → poll until `status: active` (usually 1–3 minutes)  
 2. `POST /v1/video/generations`  
-3. `GET /v1/video/generations/{task_id}` until `completed`  
-4. On moderation failure, see [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result)
+3. `GET /v1/video/generations/{task_id}` every ~5s until `completed` (usually 30–120s)  
+4. On moderation `failed`, see [Get moderation result](/en/api-reference/endpoint/seedance-2.0/get-moderation-result)
 
 See also [Submit video task](/en/api-reference/endpoint/submit-video-task).
+
+## Common HTTP status codes
+
+| Code | Meaning |
+|------|---------|
+| `400` | Invalid parameters |
+| `401` | Invalid API key |
+| `402` | Insufficient balance |
+| `429` | Rate limited |
+| `502` | Upstream error |
+
+Gateway validation errors use `error.type: invalid_request_error`. BytePlus errors are passed through with `error.code` (e.g. `InvalidParameter`) and a `param` field path.

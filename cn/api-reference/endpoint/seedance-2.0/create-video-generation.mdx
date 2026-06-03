@@ -1,18 +1,21 @@
 ---
 title: '创建视频生成任务'
 description: 'Seedance 2.0 POST /v1/video/generations'
-api: 'POST https://api.tennda.ai/v1/video/generations'
+api: 'POST https://api.gravitex.ai/v1/video/generations'
 ---
 
 ## 简介
 
-提交 Seedance 2.0 异步视频生成任务，返回 `task_id` 用于轮询。支持 `content` 数组或简化 `prompt` 字段。
-
+提交 Seedance 2.0 异步视频生成任务，返回 `task_id` 用于轮询。`content` 与 `prompt` 至少提供一个，推荐使用 `content` 数组。
 
 ## 认证
 
 <ParamField header="Authorization" type="string" required>
   Bearer Token，如 `Bearer sk-xxxxxxxxxx`
+</ParamField>
+
+<ParamField header="Content-Type" type="string">
+  `application/json`
 </ParamField>
 
 ## 请求参数
@@ -22,29 +25,77 @@ api: 'POST https://api.tennda.ai/v1/video/generations'
 </ParamField>
 
 <ParamField body="content" type="array">
-  多模态内容：`text`、`image_url`、`video_url`、`audio_url` 等
+  多模态内容数组（见下方）；与 `prompt` 二选一，至少提供一个
 </ParamField>
 
 <ParamField body="prompt" type="string">
-  与 `content` 二选一
+  文本提示词，`content` 的简化替代
 </ParamField>
 
 <ParamField body="duration" type="integer" default="5">
-  4–15 秒，或 `-1` 自动
+  `-1`（自动）或 `4`~`15` 秒
 </ParamField>
 
 <ParamField body="resolution" type="string" default="720p">
-  `480p`、`720p`、`1080p`（fast 不支持 1080p）
+  `480p`、`720p`；标准版还支持 `1080p`（fast 不支持 `1080p`）
 </ParamField>
 
 <ParamField body="ratio" type="string" default="16:9">
-  `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`21:9`、`adaptive`
+  `16:9`、`9:16`、`1:1`、`4:3`、`3:4`、`21:9`、`adaptive`（首帧图建议 `adaptive`；**参考图/参考视频模式下不可用**）
 </ParamField>
+
+<ParamField body="generate_audio" type="boolean" default="true">
+  是否自动生成音频；提供 `reference_audio` 时建议设为 `false`
+</ParamField>
+
+<ParamField body="watermark" type="boolean" default="false">
+  是否添加水印
+</ParamField>
+
+<ParamField body="seed" type="integer" default="-1">
+  随机种子，`-1` 为随机；固定正整数可复现结果
+</ParamField>
+
+## content 数组
+
+| type | role | 说明 | 数量 |
+|------|------|------|------|
+| `text` | — | 文本提示词 | 1 条 |
+| `image_url` | （省略） | 默认作首帧 | 1 张 |
+| `image_url` | `first_frame` | 首帧图片 | 1 张 |
+| `image_url` | `last_frame` | 尾帧（须搭配 `first_frame`） | 1 张 |
+| `image_url` | `reference_image` | 参考图片 | 最多 9 张 |
+| `video_url` | `reference_video` | 参考视频 | 最多 3 个 |
+| `audio_url` | `reference_audio` | 参考音频（须搭配图/视频） | 最多 3 段 |
+
+**互斥规则：** `first_frame` 与 `reference_image` 不能同时使用；`last_frame` 须搭配 `first_frame`。
+
+<Warning>
+  **`asset://` 须按 `asset_type` 分流**：`Image` → `image_url`；`Video` → `video_url`；`Audio` → `audio_url`。音频素材塞入 `image_url` 会返回 `InvalidParameter`。
+</Warning>
+
+| 素材 `asset_type` | `type` | 字段 | `role` |
+|---|---|---|---|
+| `Image` | `image_url` | `image_url.url` | `reference_image` / `first_frame` / `last_frame` |
+| `Video` | `video_url` | `video_url.url` | `reference_video` |
+| `Audio` | `audio_url` | `audio_url.url` | `reference_audio` |
+
+## content 裸传 URL 限制
+
+`content` 中直接传 http(s) URL（非 `asset://`）时，资源须满足下列约束；`asset://` 引用素材库时数值约束相同，图片格式在素材库侧可更宽（见 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset)）。
+
+| 类型 | 主要限制 |
+|------|----------|
+| 图片 | JPEG / PNG / WebP，≤ 30MB，300~6000px；`reference_image` 最多 9 张；首/尾帧各 1 张 |
+| 视频 | MP4 / MOV，≤ 50MB，单段 2~15 秒，最多 3 个 `reference_video`，总时长 ≤ 15 秒 |
+| 音频 | WAV / MP3，≤ 15MB，2~15 秒/段，最多 3 段；须搭配图片或视频 |
 
 ## 请求示例
 
+**文生视频：**
+
 ```bash
-curl -X POST "https://api.tennda.ai/v1/video/generations" \
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -59,32 +110,86 @@ curl -X POST "https://api.tennda.ai/v1/video/generations" \
   }'
 ```
 
-使用素材库：
+**简化 `prompt`（文生视频）：**
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/video/generations" \
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "prompt": "黄金时刻，无人机航拍连绵山脉",
+    "duration": 5,
+    "resolution": "720p",
+    "ratio": "16:9"
+  }'
+```
+
+**图生视频（首帧）：**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "seedance-2-0",
     "content": [
-      {"type": "text", "text": "女孩在海边跳舞"},
-      {"type": "image_url", "image_url": {"url": "asset://asset-xxx"}, "role": "reference_image"}
+      {"type": "text", "text": "镜头缓慢推进，花瓣随风飘落"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/garden.jpg"}}
     ],
-    "duration": 5
+    "ratio": "adaptive"
   }'
 ```
+
+**图生视频（首尾帧）：**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "日出到日落的延时摄影效果"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/sunrise.jpg"}, "role": "first_frame"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/sunset.jpg"}, "role": "last_frame"}
+    ],
+    "duration": 10,
+    "ratio": "adaptive"
+  }'
+```
+
+**素材库 + 多模态：**
+
+```bash
+curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "seedance-2-0",
+    "content": [
+      {"type": "text", "text": "素材1 用素材2唱歌"},
+      {"type": "image_url", "image_url": {"url": "asset://asset-xxx-image"}, "role": "reference_image"},
+      {"type": "audio_url", "audio_url": {"url": "asset://asset-xxx-audio"}, "role": "reference_audio"}
+    ],
+    "duration": 5,
+    "generate_audio": false
+  }'
+```
+
+> 仅 `active` 状态素材可用于生成；同一次请求引用的多张素材须来自同一素材组。
 
 ## 响应示例
 
 ```json
 {
-  "id": "ut-abc123",
-  "task_id": "ut-abc123",
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
   "object": "video",
   "model": "seedance-2-0",
   "status": "queued",
-  "progress": 0
+  "progress": 0,
+  "created_at": 1712563200
 }
 ```
 

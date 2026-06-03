@@ -1,7 +1,7 @@
 ---
 title: 'Create asset group'
 description: 'POST /v1/asset-groups (aigc)'
-api: 'POST https://api.tennda.ai/v1/asset-groups'
+api: 'POST https://api.gravitex.ai/v1/asset-groups'
 ---
 
 ## Introduction
@@ -9,7 +9,6 @@ api: 'POST https://api.tennda.ai/v1/asset-groups'
 Create a virtual asset group (`group_type` = `aigc`). For `liveness_face`, use [Create asset group (liveness)](/en/api-reference/endpoint/seedance-2.0/create-visual-validate-session).
 
 Up to **100** groups per user for aigc and liveness_face (separate quotas).
-
 
 ## Authentication
 
@@ -24,24 +23,42 @@ Up to **100** groups per user for aigc and liveness_face (separate quotas).
 </ParamField>
 
 <ParamField body="description" type="string">
-  Description; defaults to API key user `username` if empty
+  Description; defaults to API key user `username` if omitted or empty (for BytePlus console attribution)
 </ParamField>
 
 <ParamField body="channel_id" type="integer">
-  Upstream channel ID (optional)
+  Upstream channel ID; auto-selected if omitted
 </ParamField>
 
 <ParamField body="group_type" type="string" default="aigc">
-  Only `aigc` here; not `liveness_face`
+  Only `aigc`; not `liveness_face`
 </ParamField>
 
 ## Example
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/asset-groups" \
+curl -X POST "https://api.gravitex.ai/v1/asset-groups" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"name": "Character A", "description": "Test"}'
 ```
 
-Save `group_id` for [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset).
+## Response
+
+```json
+{
+  "group_id": "group-20260508120000-abcde",
+  "name": "Character A",
+  "description": "Test",
+  "channel_id": 123,
+  "group_type": "aigc"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `group_id` | Use with [Create asset](/en/api-reference/endpoint/seedance-2.0/create-asset) and delete group |
+| `description` | Stored value (empty input → `username` fallback) |
+| `channel_id` | Selected upstream channel |
+
+Save `group_id` for asset creation.

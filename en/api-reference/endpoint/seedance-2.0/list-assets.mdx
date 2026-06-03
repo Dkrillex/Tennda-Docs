@@ -1,13 +1,12 @@
 ---
 title: 'List assets'
 description: 'GET /v1/assets'
-api: 'GET https://api.tennda.ai/v1/assets'
+api: 'GET https://api.gravitex.ai/v1/assets'
 ---
 
 ## Introduction
 
-List assets, optionally filtered by group.
-
+List assets for the current user and refresh in-progress upstream status automatically.
 
 ## Authentication
 
@@ -18,12 +17,49 @@ List assets, optionally filtered by group.
 ## Query parameters
 
 <ParamField query="group_id" type="string">
-  Filter by group ID
+  Filter by group ID; **ignores `group_type` when set**
 </ParamField>
 
-## Example
+<ParamField query="group_type" type="string" default="aigc">
+  `aigc`, `liveness_face`, or `all`. **Omitted defaults to virtual library assets only**
+</ParamField>
+
+## Examples
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/assets?group_id=group-20260508120000-abcde" \
+# Default: virtual library
+curl "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# By group
+curl "https://api.gravitex.ai/v1/assets?group_id=group-20260508120000-abcde" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# All live-person library assets
+curl "https://api.gravitex.ai/v1/assets?group_type=liveness_face" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
+
+## Response
+
+```json
+{
+  "assets": [
+    {
+      "virtual_id": "asset-20260508120145-pqwhc",
+      "asset_url": "asset://asset-20260508120145-pqwhc",
+      "group_id": "group-20260508120000-abcde",
+      "url": "https://signed-url.example.com/...",
+      "filename": "portrait.jpg",
+      "asset_type": "Image",
+      "status": "active",
+      "created_at": 1715140800
+    }
+  ],
+  "total": 1
+}
+```
+
+<Note>
+  Response `url` is a temporary signed upstream URL (~12 hours) for preview only. **Use `asset_url` (`asset://`) in video generation, not `url`.**
+</Note>

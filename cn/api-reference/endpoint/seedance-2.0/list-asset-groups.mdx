@@ -1,13 +1,12 @@
 ---
 title: '列出素材组'
 description: 'GET /v1/asset-groups'
-api: 'GET https://api.tennda.ai/v1/asset-groups'
+api: 'GET https://api.gravitex.ai/v1/asset-groups'
 ---
 
 ## 简介
 
-列出当前用户的素材组。
-
+列出当前用户的素材组。用户只能查看和操作自己的素材组。
 
 ## 认证
 
@@ -18,12 +17,50 @@ api: 'GET https://api.tennda.ai/v1/asset-groups'
 ## 查询参数
 
 <ParamField query="group_type" type="string" default="aigc">
-  `aigc`、`liveness_face` 或 `all`；**未传时默认仅返回 `aigc`**
+  `aigc`、`liveness_face` 或 `all`。**未传时默认仅返回虚拟素材组**——查看真人组请传 `liveness_face` 或 `all`
 </ParamField>
 
 ## 请求示例
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/asset-groups?group_type=all" \
+# 默认：仅虚拟素材组
+curl "https://api.gravitex.ai/v1/asset-groups" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# 仅真人素材组
+curl "https://api.gravitex.ai/v1/asset-groups?group_type=liveness_face" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# 全部
+curl "https://api.gravitex.ai/v1/asset-groups?group_type=all" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
+
+## 响应示例
+
+```json
+{
+  "groups": [
+    {
+      "group_id": "group-20260508120000-abcde",
+      "group_type": "aigc",
+      "name": "角色A",
+      "description": "测试角色",
+      "channel_id": 123,
+      "space_label": "A",
+      "asset_count": 3,
+      "created_at": 1715140800,
+      "updated_at": 1715140800
+    }
+  ],
+  "total": 1,
+  "has_byteplus_channels": true
+}
+```
+
+| 字段 | 说明 |
+|------|------|
+| `group_type` | `aigc` 或 `liveness_face` |
+| `space_label` | 多上游空间场景下的渠道标签（A / B / C…） |
+| `asset_count` | 该组当前素材数量 |
+| `has_byteplus_channels` | 当前用户是否已配置 BytePlus 上游渠道 |

@@ -1,13 +1,18 @@
 ---
 title: 'Create asset'
 description: 'POST /v1/assets'
-api: 'POST https://api.tennda.ai/v1/assets'
+api: 'POST https://api.gravitex.ai/v1/assets'
 ---
 
 ## Introduction
 
-Create an asset in a group. Public **https** URLs only. Initial `status` is `processing`; poll until `active` before using `asset://`.
+Create an asset in a group. `Content-Type: application/json`; **public https URLs only** (BytePlus must fetch directly). No Base64 / Data URI / multipart upload. Upload local files to OSS / TOS / S3 first.
 
+Both `aigc` and `liveness_face` libraries support `Image` / `Video` / `Audio`. Initial `status` is `pending`; poll until `active` (usually 1–3 minutes) before using `asset://`.
+
+<Note>
+  BytePlus `CreateAsset` no longer supports Base64 as of 2026. See [Create an Asset](https://docs.byteplus.com/en/docs/ModelArk/CreateAsset).
+</Note>
 
 ## Authentication
 
@@ -17,34 +22,95 @@ Create an asset in a group. Public **https** URLs only. Initial `status` is `pro
 
 ## Request body
 
-<ParamField body="group_id" type="string" required>
-  Asset group ID
-</ParamField>
-
-<ParamField body="asset_type" type="string" required>
-  `image`, `video`, `audio`
-</ParamField>
-
 <ParamField body="url" type="string" required>
-  Public https URL
+  Public https URL; passed through to upstream unchanged
+</ParamField>
+
+<ParamField body="group_id" type="string" required>
+  Group ID from [Create asset group](/en/api-reference/endpoint/seedance-2.0/create-asset-group) or [Create asset group (liveness)](/en/api-reference/endpoint/seedance-2.0/create-visual-validate-session)
+</ParamField>
+
+<ParamField body="asset_type" type="string" default="Image">
+  `Image` / `Video` / `Audio` (case-insensitive)
 </ParamField>
 
 <ParamField body="name" type="string">
-  Asset name
+  Display name (≤ 64 chars; UI/search only, not used in inference)
 </ParamField>
 
-## Example
+## Format and size limits
+
+#### Image (`Image`)
+
+| Item | Limit |
+|------|-------|
+| Formats | jpeg / png / webp / bmp / tiff / gif / heic / heif |
+| Size | &lt; 30 MB |
+| Aspect ratio | 0.4 – 2.5 |
+| Dimensions | 300 – 6000 px |
+
+#### Video (`Video`)
+
+| Item | Limit |
+|------|-------|
+| Formats | mp4 / mov |
+| Size | ≤ 50 MB |
+| Resolution | 480p, 720p (no 1080p+) |
+| Duration | 2 – 15 s |
+| FPS | 24 – 60 |
+| Aspect ratio | 0.4 – 2.5 |
+| Dimensions | 300 – 6000 px |
+| Total pixels (W×H) | 409600 – 927408 |
+
+#### Audio (`Audio`)
+
+| Item | Limit |
+|------|-------|
+| Formats | mp3 / wav |
+| Size | ≤ 15 MB |
+| Duration | 2 – 15 s |
+
+> Gateway checks URL suffix only; BytePlus validates size/duration asynchronously. Invalid assets end as `status: failed`.
+
+## Examples
+
+Same JSON shape for image, video, and audio—only `asset_type` and URL differ:
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/assets" \
+# Image
+curl -X POST "https://api.gravitex.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
-  -d '{
-    "group_id": "group-20260508120000-abcde",
-    "asset_type": "image",
-    "url": "https://example.com/face.jpg",
-    "name": "Reference"
-  }'
+  -d '{"url":"https://your-cdn.com/portrait.jpg","group_id":"group-xxx","asset_type":"Image","name":"portrait.jpg"}'
+
+# Video
+curl -X POST "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-cdn.com/dance.mp4","group_id":"group-xxx","asset_type":"Video","name":"dance.mp4"}'
+
+# Audio
+curl -X POST "https://api.gravitex.ai/v1/assets" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx" \
+  -H "Content-Type: application/json" \
+  -d '{"url":"https://your-cdn.com/voice.mp3","group_id":"group-xxx","asset_type":"Audio","name":"voice.mp3"}'
 ```
 
-Use in generation: `asset://asset-20260508120001-xyz` (mapped by `asset_type`).
+## Response
+
+```json
+{
+  "virtual_id": "asset-20260508120145-pqwhc",
+  "asset_url": "asset://asset-20260508120145-pqwhc",
+  "group_id": "group-20260508120000-abcde",
+  "asset_type": "Image",
+  "status": "pending"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `asset_url` | Reference in video `content` (mapped by `asset_type`) |
+| `status` | `pending` → `active` / `failed` |
+
+Next: [List assets](/en/api-reference/endpoint/seedance-2.0/list-assets) or [Get asset](/en/api-reference/endpoint/seedance-2.0/get-asset) to poll status.

@@ -1,15 +1,14 @@
 ---
 title: '创建素材组'
 description: 'POST /v1/asset-groups（虚拟 aigc）'
-api: 'POST https://api.tennda.ai/v1/asset-groups'
+api: 'POST https://api.gravitex.ai/v1/asset-groups'
 ---
 
 ## 简介
 
 创建虚拟素材组（`group_type` 固定为 `aigc`）。真人素材组须走 [创建素材组（真人）](/cn/api-reference/endpoint/seedance-2.0/create-visual-validate-session)。
 
-同一用户下虚拟组与真人组各最多 **100** 个，配额独立。
-
+同一用户下虚拟组与真人组各最多 **100** 个，配额独立、不共用。
 
 ## 认证
 
@@ -24,7 +23,7 @@ api: 'POST https://api.tennda.ai/v1/asset-groups'
 </ParamField>
 
 <ParamField body="description" type="string">
-  描述；省略或空串时用 API Key 所属用户 `username` 兜底
+  描述；省略或空串时用 API Key 所属用户 `username` 兜底（便于火山方舟控制台识别归属）
 </ParamField>
 
 <ParamField body="channel_id" type="integer">
@@ -38,13 +37,10 @@ api: 'POST https://api.tennda.ai/v1/asset-groups'
 ## 请求示例
 
 ```bash
-curl -X POST "https://api.tennda.ai/v1/asset-groups" \
+curl -X POST "https://api.gravitex.ai/v1/asset-groups" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
-  -d '{
-    "name": "角色A",
-    "description": "测试角色"
-  }'
+  -d '{"name": "角色A", "description": "测试角色"}'
 ```
 
 ## 响应示例
@@ -54,8 +50,15 @@ curl -X POST "https://api.tennda.ai/v1/asset-groups" \
   "group_id": "group-20260508120000-abcde",
   "name": "角色A",
   "description": "测试角色",
+  "channel_id": 123,
   "group_type": "aigc"
 }
 ```
 
-保存 `group_id` 供 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset) 使用。
+| 字段 | 说明 |
+|------|------|
+| `group_id` | 供 [创建素材](/cn/api-reference/endpoint/seedance-2.0/create-asset) 与删除素材组使用 |
+| `description` | 网关回填后的实际值（用户传空 → 兜底为 `username`） |
+| `channel_id` | 实际选中的上游渠道 |
+
+保存 `group_id` 供后续创建素材使用。

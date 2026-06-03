@@ -1,13 +1,12 @@
 ---
 title: 'List asset groups'
 description: 'GET /v1/asset-groups'
-api: 'GET https://api.tennda.ai/v1/asset-groups'
+api: 'GET https://api.gravitex.ai/v1/asset-groups'
 ---
 
 ## Introduction
 
-List asset groups for the current user.
-
+List asset groups for the current user. Users can only access their own groups.
 
 ## Authentication
 
@@ -18,12 +17,50 @@ List asset groups for the current user.
 ## Query parameters
 
 <ParamField query="group_type" type="string" default="aigc">
-  `aigc`, `liveness_face`, or `all`. **Omitted defaults to `aigc` only**
+  `aigc`, `liveness_face`, or `all`. **Omitted defaults to virtual groups only**—use `liveness_face` or `all` for live-person groups
 </ParamField>
 
-## Example
+## Examples
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/asset-groups?group_type=all" \
+# Default: virtual only
+curl "https://api.gravitex.ai/v1/asset-groups" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# Live-person only
+curl "https://api.gravitex.ai/v1/asset-groups?group_type=liveness_face" \
+  -H "Authorization: Bearer sk-xxxxxxxxxx"
+
+# All
+curl "https://api.gravitex.ai/v1/asset-groups?group_type=all" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
+
+## Response
+
+```json
+{
+  "groups": [
+    {
+      "group_id": "group-20260508120000-abcde",
+      "group_type": "aigc",
+      "name": "Character A",
+      "description": "Test",
+      "channel_id": 123,
+      "space_label": "A",
+      "asset_count": 3,
+      "created_at": 1715140800,
+      "updated_at": 1715140800
+    }
+  ],
+  "total": 1,
+  "has_byteplus_channels": true
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| `group_type` | `aigc` or `liveness_face` |
+| `space_label` | Channel label in multi-space setups (A / B / C…) |
+| `asset_count` | Current asset count in the group |
+| `has_byteplus_channels` | Whether the user has BytePlus upstream channels configured |

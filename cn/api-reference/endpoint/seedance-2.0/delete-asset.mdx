@@ -1,13 +1,12 @@
 ---
 title: '删除素材'
 description: 'DELETE /v1/assets/{virtual_id}'
-api: 'DELETE https://api.tennda.ai/v1/assets/{virtual_id}'
+api: 'DELETE https://api.gravitex.ai/v1/assets/{virtual_id}'
 ---
 
 ## 简介
 
-删除指定素材。
-
+删除指定素材（上游 + 本地映射）。
 
 ## 认证
 
@@ -24,6 +23,15 @@ api: 'DELETE https://api.tennda.ai/v1/assets/{virtual_id}'
 ## 请求示例
 
 ```bash
-curl -X DELETE "https://api.tennda.ai/v1/assets/asset-20260508120001-xyz" \
+curl -X DELETE "https://api.gravitex.ai/v1/assets/asset-20260508120145-pqwhc" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
+```
+
+## 响应示例
+
+```json
+{
+  "deleted": true,
+  "virtual_id": "asset-20260508120145-pqwhc"
+}
 ```

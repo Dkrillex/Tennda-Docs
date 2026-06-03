@@ -1,13 +1,16 @@
 ---
 title: 'Get moderation result'
 description: 'GET /v1/video/generations/moderation-result/{task_id}'
-api: 'GET https://api.tennda.ai/v1/video/generations/moderation-result/{task_id}'
+api: 'GET https://api.gravitex.ai/v1/video/generations/moderation-result/{task_id}'
 ---
 
 ## Introduction
 
-When a Seedance 2.0 task fails for content safety or copyright, query upstream moderation details. Requires channel whitelist; valid 14 days after create; first query is cached.
+When a Seedance 2.0 task `failed` due to **content safety / copyright / public figures / real human face** policies, `GET /v1/video/generations/{task_id}` may only return a generic error. Use this endpoint for upstream block categories and details.
 
+<Warning>
+  **Disabled by default**—requires BytePlus whitelist. Contact BytePlus sales and have an admin enable “moderation result query” on the channel. Without it: `403 channel_not_whitelisted`.
+</Warning>
 
 ## Authentication
 
@@ -21,9 +24,76 @@ When a Seedance 2.0 task fails for content safety or copyright, query upstream m
   Failed task `task_id` (`seedance-2-0` / `seedance-2-0-fast` only)
 </ParamField>
 
+## Limits
+
+| Limit | Description |
+|-------|-------------|
+| Models | seedance-2-0 series failed tasks only |
+| Window | **14 days** after create; else `400 query_window_expired` |
+| Status | `failed` only; else `400 invalid_task_status` |
+| Ownership | Own tasks only (token `user_id`) |
+| Rate | **10 QPM** per channel; `429 rate_limited` |
+| Cache | First successful query persisted; repeats return `"cached": true` without QPM cost |
+
 ## Example
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/video/generations/moderation-result/ut-abc123" \
+curl "https://api.gravitex.ai/v1/video/generations/moderation-result/cgt-20260430135030-xxxxx" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
+
+## Response
+
+```json
+{
+  "task_id": "cgt-20260430135030-xxxxx",
+  "block_reasons": [
+    {
+      "label": "Celebrity",
+      "sub_label": "Celebrity",
+      "detail": "Potentially contains Public Figures."
+    },
+    {
+      "label": "Copyright",
+      "sub_label": "IP",
+      "detail": "Potential copyright restriction. Potentially related content: Spider-Man: Homecoming-Peter Parker"
+    }
+  ],
+  "cached": false,
+  "queried_at": 1715140800
+}
+```
+
+### block_reasons fields
+
+| Field | Description |
+|-------|-------------|
+| `label` | Category: `Safety` / `Copyright` / `Celebrity` / `Deepfake` |
+| `sub_label` | Sub-category: `Safety`; `IP` / `Other` under `Copyright`; `Celebrity`; `RealHuman` under `Deepfake` |
+| `detail` | Human-readable detail; may include IP or public figure names |
+
+## Common errors
+
+| HTTP | `error.type` | Meaning |
+|------|--------------|---------|
+| `400` | `invalid_request` | Missing `task_id` |
+| `400` | `invalid_task_status` | Task is not `failed`; no moderation block to query |
+| `400` | `unsupported_model` | Task is not seedance-2-0 series |
+| `400` | `query_window_expired` | Task is outside the 14-day query window |
+| `403` | `channel_not_whitelisted` | Moderation result query not enabled on channel |
+| `404` | `not_found` | Task missing, or upstream `NotFound.Id` (not moderation-blocked / invalid ID / channel not whitelisted) |
+| `429` | `rate_limited` | Channel 10 QPM limit exceeded; retry later |
+| `502` | `upstream_error` | Non-404 upstream error; see `error.message` |
+
+Error body matches other endpoints, e.g. when not whitelisted:
+
+```json
+{
+  "error": {
+    "message": "moderation query is not enabled on this channel; please contact admin to apply for BytePlus whitelist activation",
+    "type": "channel_not_whitelisted"
+  }
+}
+```
+
+> An empty `block_reasons` array means the task `failed` but was **not blocked by moderation** (another failure cause).

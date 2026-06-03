@@ -1,12 +1,14 @@
 ---
 title: "查询视频生成任务"
 description: "Seedance 2.0 GET /v1/video/generations/{task_id}"
-api: "GET https://api.tennda.ai/v1/video/generations/{task_id}"
+api: "GET https://api.gravitex.ai/v1/video/generations/{task_id}"
 ---
 
 ## 简介
 
-根据 `task_id` 轮询 Seedance 2.0 任务状态与结果。建议每 5 秒查询一次。
+根据 `task_id` 轮询任务状态与结果。建议每 **5 秒**查询一次，视频通常 **30~120 秒**内完成。
+
+状态流转：`queued` → `in_progress` → `completed` / `failed`
 
 ## 认证
 
@@ -17,13 +19,13 @@ api: "GET https://api.tennda.ai/v1/video/generations/{task_id}"
 ## 路径参数
 
 <ParamField path="task_id" type="string" required>
-  创建任务返回的 `task_id`
+  创建任务返回的 `id` 或 `task_id`
 </ParamField>
 
 ## 请求示例
 
 ```bash
-curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
+curl -X GET "https://api.gravitex.ai/v1/video/generations/ut-abc123def456" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 
@@ -32,18 +34,55 @@ curl -X GET "https://api.tennda.ai/v1/video/generations/ut-abc123" \
 | status | 说明 |
 | --- | --- |
 | `queued` | 排队中 |
-| `in_progress` | 生成中 |
+| `in_progress` | 生成中，查看 `progress` |
 | `completed` | 成功，读取 `video_url` 或 `url` |
-| `failed` | 失败，查看 `error`；可 [查询审核拦截原因](/cn/api-reference/endpoint/seedance-2.0/get-moderation-result) |
+| `failed` | 失败，查看 `error.message`；审核类失败可 [查询审核拦截原因](/cn/api-reference/endpoint/seedance-2.0/get-moderation-result) |
 
-## 响应示例（成功）
+## 响应示例
+
+**生成中：**
 
 ```json
 {
-  "task_id": "ut-abc123",
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
+  "object": "video",
+  "model": "seedance-2-0",
+  "status": "in_progress",
+  "progress": 50,
+  "created_at": 1712563200
+}
+```
+
+**成功：**
+
+```json
+{
+  "id": "ut-abc123def456",
+  "task_id": "ut-abc123def456",
   "status": "completed",
   "progress": 100,
-  "video_url": "https://example.com/video.mp4",
-  "url": "https://example.com/video.mp4"
+  "video_url": "https://uptoken.cc/v1/media/proxy?...",
+  "url": "https://uptoken.cc/v1/media/proxy?...",
+  "created_at": 1712563200,
+  "completed_at": 1712563320,
+  "metadata": {
+    "status": "succeeded",
+    "usage": { "total_tokens": 97605 }
+  }
+}
+```
+
+**失败：**
+
+```json
+{
+  "id": "ut-abc123def456",
+  "status": "failed",
+  "progress": 100,
+  "error": {
+    "message": "Content moderation failed",
+    "code": "failed"
+  }
 }
 ```
