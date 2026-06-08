@@ -46,7 +46,8 @@
                 "cn/api-reference/endpoint/messages",
                 "cn/api-reference/endpoint/gemini-native",
                 "cn/api-reference/endpoint/responses-openai",
-                "cn/api-reference/endpoint/chat-openai"
+                "cn/api-reference/endpoint/chat-openai",
+                "cn/api-reference/endpoint/gemini-chat-openai"
               ]
             },
             {
@@ -64,7 +65,8 @@
                 "cn/api-reference/endpoint/gemini-image",
                 "cn/api-reference/endpoint/gpt-image-2",
                 "cn/api-reference/endpoint/qwen-image",
-                "cn/api-reference/endpoint/image-edits"
+                "cn/api-reference/endpoint/image-edits",
+                "cn/api-reference/endpoint/nano-banana"
               ]
             },
             {
@@ -91,6 +93,13 @@
                     "cn/api-reference/endpoint/seedance-2.0/get-moderation-result"
                   ]
                 }
+              ]
+            },
+            {
+              "group": "接口模块",
+              "icon": "key",
+              "pages": [
+                "cn/interface-module/token-management"
               ]
             }
             ]
@@ -152,7 +161,8 @@
                 "en/api-reference/endpoint/messages",
                 "en/api-reference/endpoint/gemini-native",
                 "en/api-reference/endpoint/responses-openai",
-                "en/api-reference/endpoint/chat-openai"
+                "en/api-reference/endpoint/chat-openai",
+                "en/api-reference/endpoint/gemini-chat-openai"
               ]
             },
             {

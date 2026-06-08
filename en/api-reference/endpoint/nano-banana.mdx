@@ -1,81 +1,558 @@
 ---
-title: 'Gemini Native (Image)'
-description: 'Gemini image generation models: text-to-image and image-to-image'
+title: 'Gemini OpenAI format (Images)'
+description: 'Gemini imagine series via OpenAI-compatible /v1/images/generations and /v1/images/edits'
 api: 'POST https://api.tennda.ai/v1/images/generations'
 ---
 
-## Introduction
+<Note>
+For native `generateContent` image generation, see [Gemini Native (Image)](/en/api-reference/endpoint/gemini-image). For `extra_body.google` fine control, use `/v1/chat/completions` via [Gemini OpenAI format (Chat)](/en/api-reference/endpoint/gemini-chat-openai) (see appendix).
+</Note>
 
-Nano Banana refers to Google Gemini image generation models: **Nano Banana** (`gemini-2.5-flash-image`) and **Nano Banana Pro** (`gemini-3-pro-image-preview`). They are called via the unified image API `POST /v1/images/generations`, supporting text-to-image, image-to-image, and multi-image composition.
+Gemini imagine models (including Google "nano banana" and other multimodal image models that return **text + image**) are available on TenndaAI via OpenAI-compatible `/v1/images/generations` and `/v1/images/edits`.
 
-For full parameters and multi-model details, see [Image Generation](/en/api-reference/endpoint/image-generation).
+**Base URL**: `https://api.tennda.ai`
+
+---
+
+## Contents
+
+- [Authentication](#Authentication)
+- [Models](#Models)
+- [Endpoints](#Endpoints)
+- [`/v1/images/generations` — Text-to-image / image-to-image](#v1imagesgenerations--文生图--图生图)
+  - [Request parameters](#Request parameters)
+  - [`image` Field格式](#image-Field格式)
+  - [`size` / `quality` mapping](#size--quality-mapping)
+  - [Response format](#Response format)
+- [`/v1/images/edits` — Image edits](#v1imagesedits--Image edits)
+- [Examples](#Examples)
+  - [1. Text-to-image](#1-Text-to-image)
+  - [2. Image-to-image / style transfer](#2-图生图--风格迁移)
+  - [3. Multi-image blend](#3-Multi-image blend)
+  - [4. `/v1/images/edits` equivalent call](#4-v1imagesedits-equivalent call)
+  - [5. Python (OpenAI SDK)](#5-用-python-openai-sdk-调用)
+  - [6. Node.js (OpenAI SDK)](#6-用-nodejs-openai-sdk-调用)
+- [Errors](#Errors)
+- [Billing](#Billing)
+- [LimitationDescription](#LimitationDescription)
+- [Best practices](#Best practices)
+- [常见Issue](#常见Issue)
+- [Appendix: vs `/v1/chat/completions`](#附录与-v1chatcompletions-入口的对比)
+
+---
 
 ## Authentication
 
-<ParamField header="Authorization" type="string" required>
-  Bearer Token, e.g. `Bearer sk-xxxxxxxxxx`
-</ParamField>
+所有Endpoint使用 **Bearer Token** Authentication。在 [TenndaAI 控制台](https://client.tennda.ai) 创建令牌后，在请求头中添加：
 
-## Supported models
+```
+Authorization: Bearer sk-{your_token_key}
+```
 
-| Model ID | Description |
-|----------|-------------|
-| `gemini-2.5-flash-image` | Nano Banana, cost-effective text/image-to-image |
-| `gemini-3-pro-image-preview` | Nano Banana Pro, higher quality and controllability |
+Use JSON:
 
-## Request examples
+```
+Content-Type: application/json
+```
 
-<Tabs>
-  <Tab title="Text-to-image">
-    ```bash
-    curl -X POST "https://api.tennda.ai/v1/images/generations" \
-      -H "Authorization: Bearer sk-xxxxxxxxxx" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "model": "gemini-2.5-flash-image",
-        "prompt": "A cute orange cat sitting in a garden, sunny, high-quality photo",
-        "size": "16:9",
-        "quality": "high",
-        "n": 1,
-        "response_format": "b64_json",
-        "image_size": "2K",
-        "mime_type": "image/png",
-        "response_modalities": "image"
-      }'
-    ```
-  </Tab>
-  <Tab title="Image-to-image">
-    ```bash
-    curl -X POST "https://api.tennda.ai/v1/images/generations" \
-      -H "Authorization: Bearer sk-xxxxxxxxxx" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "model": "gemini-2.5-flash-image",
-        "size": "16:9",
-        "quality": "high",
-        "image_size": "3K",
-        "response_format": "b64_json",
-        "contents": [
-          {
-            "role": "user",
-            "parts": [
-              {"text": "Generate an aerial view of Canton Tower based on this image"},
-              {"image": "data:image/png;base64,iVBORw0KGgo..."}
-            ]
-          }
+---
+
+## Models
+
+| 模型 ID | Description | Image-to-image | Default size |
+|---------|------|---------------|------------|
+| `gemini-3-pro-image-preview` | Gemini 3 Pro image preview — highest quality | ✅ | 1024×1024 / 2K |
+| `gemini-3.1-flash-image-preview` | Gemini 3.1 Flash image preview — fast, cost-effective ("nano banana") | ✅ | 1024×1024 |
+| `gemini-2.5-flash-image` | Gemini 2.5 Flash image — stable | ✅ | 1024×1024 |
+
+> More imagine models are added over time — see the [console model list](https://client.tennda.ai).
+
+---
+
+## Endpoints
+
+| Endpoint | Method | Purpose |
+|------|------|------|
+| `/v1/images/generations` | POST | 文生图、图生图、Multi-image blend |
+| `/v1/images/edits` | POST | Image edits（与 generations Protocol等价，由 SDK 习惯决定走哪个） |
+
+> 对 imagine 模型来说，`/v1/images/generations` 与 `/v1/images/edits` **完全等价**——传不传 `image` Field决定是文生图还是图生图，而不是Endpoint路径。选哪个看你用的 SDK 习惯（OpenAI Python SDK 中 `images.generate` vs `images.edit`）。
+
+---
+
+## `/v1/images/generations` — Text-to-image / image-to-image
+
+**POST** `https://api.tennda.ai/v1/images/generations`
+
+### Request parameters
+
+| Parameter | Type | Required | Default | Description |
+|------|------|------|--------|------|
+| `model` | string | **是** | — | 模型 ID，见 [Models](#Models) |
+| `prompt` | string | **是** | — | Text prompt describing the image |
+| `image` | string / string[] | 否 | — | Input参考图（图生图、风格迁移、Multi-image blend用），格式见 [`image` Field格式](#image-Field格式) |
+| `size` | string | 否 | 由模型决定 | 期望尺寸或宽高比，见 [`size` / `quality` mapping](#size--quality-mapping) |
+| `quality` | string | 否 | `auto` | Output质量档位，见 [`size` / `quality` mapping](#size--quality-mapping) |
+| `n` | integer | 否 | `1` | **Ignored**: one image per upstream call; loop client-side for multiple |
+| `response_format` | string | 否 | `b64_json` | **当前不Passthrough**：响应永远以 `b64_json` Field返回 base64 |
+
+### `image` Field格式
+
+`image` Field用于"图生图"——把一张或多张参考图喂给模型作为视觉上下文。支持以下两种 JSON 形态：
+
+```jsonc
+// (1) Single: string
+{ "image": "https://example.com/cat.jpg" }
+{ "image": "data:image/png;base64,iVBORw0KGgo..." }
+{ "image": "iVBORw0KGgo..." }   // raw base64 (must be valid image)
+
+// (2) Multiple: string array
+{ "image": [
+    "https://example.com/a.jpg",
+    "data:image/png;base64,iVBORw0KGgo..."
+] }
+```
+
+* **URL 形态**：网关会自动 fetch 并校验图片Type；URL 必须可公网访问，建议用 https。
+* **base64 / data URI**: gateway decodes and sniffs MIME.
+* **Supported formats**: `image/png`、`image/jpeg`、`image/jpg`、`image/webp`、`image/heic`、`image/heif`。
+* **Not supported** `multipart/form-data` 上传文件——请把图片转成 base64 或先上传到对象存储拿到 URL。
+
+### `size` / `quality` mapping
+
+imagine 模型的Output有限定档位（不像传统模型可任意指定像素），网关会自动把 OpenAI 风格的mapping到模型支持的档位。
+
+#### `size` → aspect ratio
+
+| `size` 取值 | aspectRatio |
+|------------|----------------------|
+| `256x256`、`512x512`、`1024x1024` | `1:1`（square） |
+| `1536x1024` | `3:2`（landscape） |
+| `1024x1536` | `2:3`（portrait） |
+| `1024x1792` | `9:16`（phone portrait） |
+| `1792x1024` | `16:9`（widescreen） |
+| Pass ratio directly (`9:16`, `16:9`, etc.) | 原样使用 |
+| Omitted or unknown | Model default (usually `1:1`) |
+
+#### `quality` → imageSize tier
+
+| `quality` 取值 | imageSize | Notes |
+|---------------|---------------------|------|
+| `hd`、`high`、`2K` | `2K` | Higher resolution, larger/slower |
+| `standard`、`medium`、`low`、`auto`、`1K`、未传 | `1K` | Standard, faster |
+
+### Response format
+
+#### Success response
+
+```json
+{
+  "created": 1747299537,
+  "data": [
+    {
+      "url": "",
+      "b64_json": "iVBORw0KGgoAAAANSUhEUgAA...",
+      "revised_prompt": "好的，我已为您生成了一只穿唐装写春联的柴犬..."
+    }
+  ],
+  "metadata": {
+    "text": "好的，我已为您生成了一只穿唐装写春联的柴犬..."
+  },
+  "usage": {
+    "total_tokens": 1421,
+    "input_tokens": 27,
+    "output_tokens": 1394,
+    "input_tokens_details": {
+      "text_tokens": 27,
+      "image_tokens": 0
+    },
+    "output_tokens_details": {
+      "image_tokens": 1290,
+      "text_tokens": 104
+    }
+  }
+}
+```
+
+| Field | Type | Description |
+|------|------|------|
+| `created` | integer | Unix timestamp (seconds) |
+| `data[].b64_json` | string | Base64 image (no `data:` prefix) — decode to PNG |
+| `data[].url` | string | 当前为空字符串（保留兼容Field，平台不上传图片到外部 URL） |
+| `data[0].revised_prompt` | string | Model description / revised prompt (text + image) |
+| `metadata.text` | string | Duplicate of `revised_prompt` for simpler clients |
+| `usage.total_tokens` | integer | Total tokens |
+| `usage.input_tokens` | integer | Input tokens (prompt + reference images) |
+| `usage.output_tokens` | integer | Output tokens (image + description text) |
+| `usage.input_tokens_details.text_tokens` | integer | Input text tokens |
+| `usage.input_tokens_details.image_tokens` | integer | Input image tokens (0 if no reference) |
+| `usage.output_tokens_details.image_tokens` | integer | Output image tokens (per-model fixed cost) |
+| `usage.output_tokens_details.text_tokens` | integer | Output text tokens |
+
+> Gemini imagine 模型在生成图片的同时常常会返回一段文字描述（"我帮您画了 X"），这段文字以 `revised_prompt` + `metadata.text` 形式返回，客户端可选择展示。
+>
+> `usage` Field格式与 OpenAI gpt-image-1 完全对齐，方便用 OpenAI SDK 的项目无缝接入。
+
+#### Error response
+
+```json
+{
+  "error": {
+    "message": "request blocked by Gemini API: SAFETY",
+    "type": "invalid_request_error",
+    "code": "prompt_blocked"
+  }
+}
+```
+
+详见 [Errors](#Errors) 章节。
+
+---
+
+## `/v1/images/edits` — Image edits
+
+**POST** `https://api.tennda.ai/v1/images/edits`
+
+请求/Response format与 `/v1/images/generations` **完全一致**（同样接受 JSON + `image` Field，返回相同结构）。区别仅在于 OpenAI Python SDK 中 `images.edit` 与 `images.generate` 是两个不同的Method，部分用户习惯按"编辑"语义走 edits 入口。
+
+> ⚠️ 与 OpenAI 官方 dall-e-2 的 `/images/edits` 不同：本Endpoint**Not supported** `multipart/form-data` 上传 + `mask` Field（imagine 模型靠 prompt 指挥编辑，不需要 mask）。`image` Field同 generations。
+
+---
+
+## Examples
+
+### 1. Text-to-image
+
+Basic usage: `prompt` only.
+
+```bash
+curl -X POST https://api.tennda.ai/v1/images/generations \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.1-flash-image-preview",
+    "prompt": "Shiba inu in Tang suit writing spring couplets, ink wash style",
+    "size": "1024x1024",
+    "quality": "hd"
+  }'
+```
+
+---
+
+### 2. Image-to-image / style transfer
+
+把一张照片改成赛博朋克风格——`image` Field传单张参考图。
+
+```bash
+curl -X POST https://api.tennda.ai/v1/images/generations \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.1-flash-image-preview",
+    "prompt": "Cyberpunk style, neon, rainy street",
+    "size": "16:9",
+    "quality": "hd",
+    "image": "https://example.com/portrait.jpg"
+  }'
+```
+
+Or base64 / data URI (local files):
+
+```bash
+curl -X POST https://api.tennda.ai/v1/images/generations \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.1-flash-image-preview",
+    "prompt": "Anime character style",
+    "image": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/..."
+  }'
+```
+
+---
+
+### 3. Multi-image blend
+
+把多张参考图合成到一张图里——`image` Field传字符串数组。
+
+```bash
+curl -X POST https://api.tennda.ai/v1/images/generations \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-2.5-flash-image",
+    "prompt": "Both characters on a sunset beach",
+    "size": "16:9",
+    "image": [
+      "https://example.com/character-a.png",
+      "https://example.com/character-b.png"
+    ]
+  }'
+```
+
+---
+
+### 4. `/v1/images/edits` equivalent call
+
+Same as [example 2](#2-图生图--风格迁移), via edits:
+
+```bash
+curl -X POST https://api.tennda.ai/v1/images/edits \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.1-flash-image-preview",
+    "prompt": "Cyberpunk style",
+    "image": "https://example.com/portrait.jpg"
+  }'
+```
+
+---
+
+### 5. Python (OpenAI SDK)
+
+```python
+import base64
+from openai import OpenAI
+
+client = OpenAI(
+    api_key="sk-your_token_key",
+    base_url="https://api.tennda.ai/v1",
+)
+
+# 文生图
+resp = client.images.generate(
+    model="gemini-3.1-flash-image-preview",
+    prompt="一只穿唐装在写春联的柴犬，水墨风格",
+    size="1024x1024",
+    quality="hd",
+)
+
+img_b64 = resp.data[0].b64_json
+print("revised_prompt:", resp.data[0].revised_prompt)
+
+# 保存为本地 PNG
+with open("output.png", "wb") as f:
+    f.write(base64.b64decode(img_b64))
+```
+
+图生图（OpenAI SDK 的 `images.edit` 在我们这里也走 generations Protocol；如要走 `/v1/images/edits` 入口，请用 `client.images.edit(...)`）：
+
+```python
+# I2I via generations (recommended):
+# OpenAI SDK 的 images.generate 不直接支持 image Field，
+# use HTTP POST:
+import httpx
+resp = httpx.post(
+    "https://api.tennda.ai/v1/images/generations",
+    headers={"Authorization": "Bearer sk-your_token_key"},
+    json={
+        "model": "gemini-3.1-flash-image-preview",
+        "prompt": "Cyberpunk neon style",
+        "image": "https://example.com/portrait.jpg",
+    },
+    timeout=60,
+).json()
+print(resp["data"][0]["b64_json"][:80] + "...")
+```
+
+---
+
+### 6. Node.js (OpenAI SDK)
+
+```ts
+import OpenAI from "openai";
+import { writeFile } from "fs/promises";
+
+const client = new OpenAI({
+  apiKey: "sk-your_token_key",
+  baseURL: "https://api.tennda.ai/v1",
+});
+
+// 文生图
+const resp = await client.images.generate({
+  model: "gemini-3.1-flash-image-preview",
+  prompt: "一只穿唐装在写春联的柴犬，水墨风格",
+  size: "1024x1024",
+  quality: "hd",
+});
+
+const b64 = resp.data[0].b64_json!;
+await writeFile("output.png", Buffer.from(b64, "base64"));
+console.log("revised_prompt:", resp.data[0].revised_prompt);
+```
+
+I2I with fetch:
+
+```ts
+const r = await fetch("https://api.tennda.ai/v1/images/generations", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-your_token_key",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    model: "gemini-3.1-flash-image-preview",
+    prompt: "Cyberpunk style",
+    image: "https://example.com/portrait.jpg",
+  }),
+});
+const data = await r.json();
+```
+
+---
+
+## Errors
+
+On failure, HTTP ≠ 200:
+
+```json
+{
+  "error": {
+    "message": "...",
+    "type": "...",
+    "code": "..."
+  }
+}
+```
+
+### Common error codes
+
+| HTTP | `code` | Description | Action |
+|-----------|--------|------|---------|
+| `400` | `prompt_blocked` | Blocked by Gemini safety (violence, sensitive content) | Change prompt or reference image |
+| `400` | `invalid_request` | 模型不在 imagine 列表里、`prompt` 为空、`image` Field格式不对、参考图 MIME 不在白名单等 | Fix per error message |
+| `401` | `invalid_authentication` | Invalid or expired token | Create a new key |
+| `402` | `insufficient_quota` | Insufficient quota | Top up or contact admin |
+| `429` | `rate_limit_exceeded` | 触发速率Limitation | Backoff per `Retry-After` |
+| `502` | `empty_response` | Upstream 200 but no image (rare) | Retry 1–2 times, then support |
+| `503` | `bad_response` | Upstream unavailable | Retry with backoff |
+| `504` | `request_timeout` | Upstream timeout | Retry |
+
+> `prompt_blocked` often means sensitive topics — rephrase prompt.
+
+---
+
+## Billing
+
+* **按"实际生成的图片张数"计费**：上游真实返回了几张图就扣几张，请求里的 `n` Parameter不影响计费（见 [LimitationDescription](#LimitationDescription)）。
+* **No charge when blocked or zero images.
+* See [console pricing](https://client.tennda.ai) per model/quality.
+* 计费明细可在 **令牌使用记录** 页查看，每条记录包含 `生成数量 N` Field。
+
+---
+
+## LimitationDescription
+
+| Limitation项 | Description |
+|--------|------|
+| `n` 被忽略 | One image per call; loop N times for N images |
+| No streaming | `/v1/images/generations` 与 `/v1/images/edits` 都是非StreamingEndpoint，没有 SSE chunk |
+| No multipart upload | No `multipart/form-data`；`image` Field必须是 JSON 字符串（URL / base64 / data URI） |
+| `response_format` Always `b64_json` | No hosted URL — upload base64 yourself |
+| `mask` FieldNo | imagine 模型靠 prompt 指挥编辑，不需要 mask；OpenAI 官方 dall-e-2 的 mask Protocol在本Endpoint无效 |
+| Reference image ≤ 8 MB recommended | 过大的Input图会增加处理耗时，并可能触发 HTTP body size Limitation |
+| Input MIME must be allowlisted | png / jpeg / jpg / webp / heic / heif; other formats (bmp, tiff, gif) error |
+| ≤ 4 reference images recommended | Multi-image blend时图越多耗时越长，超过 4 张请权衡延迟 |
+| 本Endpoint下No `extra_body` | Use `/v1/chat/completions` for `imageConfig` / `safetySettings` / `thinking_config` (appendix) |
+
+---
+
+## Best practices
+
+1. **prompt**: be specific (style, color, composition, camera); avoid vague words.
+2. **Start I2I with ≤512×512 references, then full size.
+3. **多次Retry**：图像生成有随机性，同一 prompt 可能首次效果不理想，建议提供"重新生成"按钮让用户多试几次。
+4. **Add regenerate/report for sensitive topics.
+5. **Persist `b64_json` immediately — no upstream cache.
+6. **Show `revised_prompt` as free UX copy under the image.
+7. **Draft at `1K`, final at `2K` to save cost.
+
+---
+
+## 常见Issue
+
+### Q1：Why `n=4` returns one image?
+
+A：Gemini imagine 模型上游单次调用只产出 1 张图，平台会按实际产出张数计费。需要多张请客户端多次调用，每次单独计费。
+
+### Q2：Can I mask regions for I2I?
+
+A：imagine 模型No `mask` Field，所有改动通过 prompt 描述（如"只把头发改成红色，其它保持不变"）。模型会理解 prompt 自动定位区域。
+
+### Q3：No `data:` prefix on `b64_json`?
+
+A：`b64_json` 是纯 base64 字符串，方便直接 decode 保存为文件。如果你要嵌入 HTML `<img src>`，自己拼接前缀即可：`"data:image/png;base64," + b64_json`。
+
+### Q4：Images only, no text?
+
+A：当前不能——imagine 模型的特色就是图文一起返回，`revised_prompt`/`metadata.text` Field可以选择不展示，但请求层面无法关闭。
+
+### Q5：Same price for T2I and I2I?
+
+A：是的——按"Output图片张数 + Output quality 档位"计费，与是否带 `image` Field无关。
+
+### Q6：Text + multiple reference images?
+
+A：可以。`image` Field支持 string[]，配合 `prompt` 描述融合方式，参考 [场景 3：Multi-image blend](#3-Multi-image blend)。
+
+### Q7：generations vs chat for imagine?
+
+A：详见 [附录](#附录与-v1chatcompletions-入口的对比)。简单来说：
+
+* `/v1/images/generations`：Protocol简单（OpenAI Image API 标准），适合"我只要图片"的场景。
+* `/v1/chat/completions`：能控制 Gemini 原生Parameter（`imageConfig`、`safetySettings`、`thinking_config` 等），适合"需要细粒度控制"的场景。
+
+---
+
+## Appendix: vs `/v1/chat/completions`
+
+Gemini imagine 模型同时也可以走 OpenAI 的 `/v1/chat/completions` Endpoint（把 prompt 写成 message，把图片放进 `content` 数组）。两个入口对比：
+
+| Aspect | `/v1/images/generations` & `/v1/images/edits` | `/v1/chat/completions` |
+|------|----------------------------------------------|------------------------|
+| Protocol | OpenAI Image API（轻量） | OpenAI Chat Completions API（功能丰富） |
+| Input | `prompt` + `image` Field | `messages[].content`（多模态数组） |
+| Output | `data[].b64_json` + `revised_prompt` | `choices[].message.content`（数组：text + image_url） |
+| Streaming | ❌ No | ❌ imagine 模型在 chat 入口下也强制非Streaming |
+| `extra_body` Passthrough | ❌ No | ✅ 通过 `extra_body.google.*` 完全Passthrough Gemini 原生Parameter |
+| Multi-turn context | ❌ Single request | ✅ Multi-turn `messages` |
+| Best for | One-shot images, batch scripts, DALL·E-compatible clients | 对话式交互（"再改一下"）、需要原生Parameter（`imageConfig`/`safetySettings`/`thinking_config`） |
+
+Chat endpoint example ([Gemini OpenAI Chat](/en/api-reference/endpoint/gemini-chat-openai)):
+
+```bash
+curl -X POST https://api.tennda.ai/v1/chat/completions \
+  -H "Authorization: Bearer sk-your_token_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.1-flash-image-preview",
+    "messages": [
+      { "role": "user", "content": [
+          { "type": "text", "text": "Cyberpunk style" },
+          { "type": "image_url", "image_url": { "url": "https://example.com/portrait.jpg" } }
         ]
-      }'
-    ```
-  </Tab>
-</Tabs>
+      }
+    ],
+    "extra_body": {
+      "google": {
+        "generationConfig": {
+          "imageConfig": { "aspectRatio": "16:9", "imageSize": "2K" }
+        }
+      }
+    }
+  }'
+```
 
-## Common parameters
+返回的 `choices[0].message.content` 是数组：
 
-- **prompt**: Text prompt for text-to-image  
-- **size**: Aspect ratio, e.g. `16:9`, `1:1`  
-- **quality**: Quality level, e.g. `high`  
-- **image_size**: Output size, e.g. `1K`, `2K`, `3K`  
-- **response_format**: Gemini series only supports `b64_json` (base64 image)  
-- **contents**: Used for image-to-image or multi-turn; format in [Image Generation](/en/api-reference/endpoint/image-generation)
+```json
+[
+  { "type": "text", "text": "Done, here is your edit..." },
+  { "type": "image_url", "image_url": {
+      "url": "data:image/png;base64,iVBORw0KGgo...",
+      "mime_type": "image/png"
+  } }
+]
+```
 
-For more parameters and model differences, see [Image Generation](/en/api-reference/endpoint/image-generation).
