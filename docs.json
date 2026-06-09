@@ -209,6 +209,13 @@
                   ]
                 }
               ]
+            },
+            {
+              "group": "Interface Modules",
+              "icon": "key",
+              "pages": [
+                "en/interface-module/token-management"
+              ]
             }
             ]
           },

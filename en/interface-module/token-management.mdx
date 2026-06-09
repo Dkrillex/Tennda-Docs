@@ -1,49 +1,49 @@
 ---
-title: 'API密钥管理'
-description: '用户 API Token 的完整管理系统，支持创建、更新、删除、批量操作及配额与权限控制'
+title: 'API Key Management'
+description: 'A complete management system for user API tokens, supporting create, update, delete, batch operations, and quota & permission control'
 ---
 
 <Info>
-  接口前缀统一为 `http(s)://<your-domain>`。生产环境应使用 HTTPS 以保证认证令牌，HTTP 仅建议用于开发环境。
+  API endpoints use the prefix `http(s)://<your-domain>`. Use HTTPS in production to protect authentication tokens; HTTP is recommended for development only.
 
-  用户 API Token 的完整管理系统，支持创建、更新、删除、批量操作及配额与权限控制。
+  A complete management system for user API tokens, supporting create, update, delete, batch operations, and quota & permission control.
 </Info>
 
 <Note>
-  注意：API 密钥为您在「个人中心 - 访问令牌」中生成的、用于 `/api` 路由访问的令牌。
+  Note: API keys are tokens you generate under **Personal Center → Access Tokens** for accessing `/api` routes.
 </Note>
 
-## 用户鉴权
+## User Authentication
 
-以下接口均需要用户登录鉴权，请在请求头中携带 `Authorization` 与 `New-Api-User`。
+The following endpoints require user login authentication. Include `Authorization` and `New-Api-User` in the request headers.
 
 <ParamField header="Authorization" type="string" required>
-  用户登录令牌，格式：`Bearer your_user_token`
+  User login token, format: `Bearer your_user_token`
 </ParamField>
 
 <ParamField header="New-Api-User" type="string" required>
-  当前用户 ID
+  Current user ID
 </ParamField>
 
 ---
 
-### 获取全部 Token
+### List All Tokens
 
-- **HTTP 方法**：GET
-- **路径**：`/api/token/`
-- **功能简介**：分页获取当前用户的所有 Token 列表
+- **HTTP Method**: GET
+- **Path**: `/api/token/`
+- **Description**: Paginated list of all tokens for the current user
 
-**查询参数**
+**Query Parameters**
 
 <ParamField query="p" type="integer" default="1">
-  页码
+  Page number
 </ParamField>
 
 <ParamField query="size" type="integer" default="20">
-  每页数量
+  Page size
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/?p=1&size=20', {
@@ -57,7 +57,7 @@ const response = await fetch('/api/token/?p=1&size=20', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -84,43 +84,43 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "获取Token列表失败"
+  "message": "Failed to retrieve token list"
 }
 ```
 
-**响应字段**
+**Response Fields**
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 |------|------|------|
-| `items` | 数组 | Token 信息列表 |
-| `total` | 数字 | Token 总数 |
-| `page` | 数字 | 当前页码 |
-| `page_size` | 数字 | 每页数量 |
+| `items` | array | List of token objects |
+| `total` | number | Total number of tokens |
+| `page` | number | Current page number |
+| `page_size` | number | Page size |
 
 ---
 
-### 搜索 Token
+### Search Tokens
 
-- **HTTP 方法**：GET
-- **路径**：`/api/token/search`
-- **功能简介**：根据关键词和 Token 值搜索用户的 Token
+- **HTTP Method**: GET
+- **Path**: `/api/token/search`
+- **Description**: Search user tokens by keyword and token value
 
-**查询参数**
+**Query Parameters**
 
 <ParamField query="keyword" type="string">
-  搜索关键词，匹配 Token 名称
+  Search keyword, matches token name
 </ParamField>
 
 <ParamField query="token" type="string">
-  Token 值搜索，支持部分匹配
+  Token value search, supports partial matching
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/search?keyword=api&token=sk-123', {
@@ -134,7 +134,7 @@ const response = await fetch('/api/token/search?keyword=api&token=sk-123', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -152,30 +152,30 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "搜索Token失败"
+  "message": "Failed to search tokens"
 }
 ```
 
 ---
 
-### 获取单个 Token
+### Get a Single Token
 
-- **HTTP 方法**：GET
-- **路径**：`/api/token/:id`
-- **功能简介**：获取指定 Token 的详细信息
+- **HTTP Method**: GET
+- **Path**: `/api/token/:id`
+- **Description**: Retrieve detailed information for a specific token
 
-**路径参数**
+**Path Parameters**
 
 <ParamField path="id" type="integer" required>
   Token ID
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/123', {
@@ -189,7 +189,7 @@ const response = await fetch('/api/token/123', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -213,58 +213,58 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "Token不存在"
+  "message": "Token not found"
 }
 ```
 
 ---
 
-### 创建 Token
+### Create Token
 
-- **HTTP 方法**：POST
-- **路径**：`/api/token/`
-- **功能简介**：创建新的 API Token，支持批量创建
+- **HTTP Method**: POST
+- **Path**: `/api/token/`
+- **Description**: Create a new API token, supports batch creation
 
-**请求体**
+**Request Body**
 
 <ParamField body="name" type="string" required>
-  Token 名称，最大长度 30 个字符
+  Token name, maximum 30 characters
 </ParamField>
 
 <ParamField body="expired_time" type="integer">
-  过期时间戳，-1 表示永不过期
+  Expiration timestamp, -1 means never expires
 </ParamField>
 
 <ParamField body="remain_quota" type="integer">
-  剩余配额
+  Remaining quota
 </ParamField>
 
 <ParamField body="unlimited_quota" type="boolean">
-  是否无限配额
+  Whether quota is unlimited
 </ParamField>
 
 <ParamField body="model_limits_enabled" type="boolean">
-  是否启用模型限制
+  Whether model restrictions are enabled
 </ParamField>
 
 <ParamField body="model_limits" type="array">
-  允许使用的模型列表
+  List of allowed models
 </ParamField>
 
 <ParamField body="allow_ips" type="string">
-  允许的 IP 地址，逗号分隔
+  Allowed IP addresses, comma-separated
 </ParamField>
 
 <ParamField body="group" type="string">
-  所属分组
+  Group name
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/', {
@@ -288,7 +288,7 @@ const response = await fetch('/api/token/', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -297,36 +297,36 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "令牌名称过长"
+  "message": "Token name is too long"
 }
 ```
 
 ---
 
-### 更新 Token
+### Update Token
 
-- **HTTP 方法**：PUT
-- **路径**：`/api/token/`
-- **功能简介**：更新 Token 配置，支持状态切换和完整更新
+- **HTTP Method**: PUT
+- **Path**: `/api/token/`
+- **Description**: Update token configuration, supports status-only updates and full updates
 
-**请求体**
+**Request Body**
 
 <ParamField body="id" type="integer" required>
   Token ID
 </ParamField>
 
 <ParamField query="status_only" type="boolean">
-  是否仅更新状态
+  Whether to update status only
 </ParamField>
 
-其他字段与创建 Token 接口相同，均为可选。
+Other fields are the same as the create token endpoint and are all optional.
 
-**请求示例（完整更新）**
+**Request Example (Full Update)**
 
 ```javascript
 const response = await fetch('/api/token/', {
@@ -351,7 +351,7 @@ const response = await fetch('/api/token/', {
 const data = await response.json();
 ```
 
-**请求示例（仅更新状态）**
+**Request Example (Status Only)**
 
 ```javascript
 const response = await fetch('/api/token/?status_only=true', {
@@ -369,7 +369,7 @@ const response = await fetch('/api/token/?status_only=true', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -383,30 +383,30 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "令牌已过期，无法启用，请先修改令牌过期时间，或者设置为永不过期"
+  "message": "Token has expired and cannot be enabled. Please update the expiration time or set it to never expire."
 }
 ```
 
 ---
 
-### 删除 Token
+### Delete Token
 
-- **HTTP 方法**：DELETE
-- **路径**：`/api/token/:id`
-- **功能简介**：删除指定的 Token
+- **HTTP Method**: DELETE
+- **Path**: `/api/token/:id`
+- **Description**: Delete a specific token
 
-**路径参数**
+**Path Parameters**
 
 <ParamField path="id" type="integer" required>
   Token ID
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/123', {
@@ -420,7 +420,7 @@ const response = await fetch('/api/token/123', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -429,30 +429,30 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "Token不存在"
+  "message": "Token not found"
 }
 ```
 
 ---
 
-### 批量删除 Token
+### Batch Delete Tokens
 
-- **HTTP 方法**：POST
-- **路径**：`/api/token/batch`
-- **功能简介**：批量删除多个 Token
+- **HTTP Method**: POST
+- **Path**: `/api/token/batch`
+- **Description**: Delete multiple tokens in batch
 
-**请求体**
+**Request Body**
 
 <ParamField body="ids" type="array" required>
-  要删除的 Token ID 列表，必填且不能为空
+  List of token IDs to delete, required and cannot be empty
 </ParamField>
 
-**请求示例**
+**Request Example**
 
 ```javascript
 const response = await fetch('/api/token/batch', {
@@ -469,7 +469,7 @@ const response = await fetch('/api/token/batch', {
 const data = await response.json();
 ```
 
-**成功响应**
+**Success Response**
 
 ```json
 {
@@ -479,17 +479,17 @@ const data = await response.json();
 }
 ```
 
-**失败响应**
+**Error Response**
 
 ```json
 {
   "success": false,
-  "message": "参数错误"
+  "message": "Invalid parameters"
 }
 ```
 
-**响应字段**
+**Response Fields**
 
-| 字段 | 类型 | 说明 |
+| Field | Type | Description |
 |------|------|------|
-| `data` | 数字 | 成功删除的 Token 数量 |
+| `data` | number | Number of tokens successfully deleted |
