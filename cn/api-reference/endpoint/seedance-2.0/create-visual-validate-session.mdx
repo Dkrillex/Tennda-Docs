@@ -1,7 +1,7 @@
 ---
 title: '创建素材组（真人）'
 description: 'POST /v1/visual-validate/session（liveness_face）'
-api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
+api: 'POST https://api.tennda.ai/v1/visual-validate/session'
 ---
 
 ## 简介
@@ -51,7 +51,7 @@ api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
 2. 客户端 popup 打开 h5_link，用户完成核验
    ↓ BytePlus 重定向至网关 /asset-validate-callback.html?state=…&bytedToken=…&resultCode=10000
 3. 回调页自动 fetch /v1/visual-validate/result，落库 group_type=liveness_face
-   ↓ window.opener.postMessage({ type: 'gravitex-asset-validate-result', ok, group_id, … })
+   ↓ window.opener.postMessage({ type: 'tennda-asset-validate-result', ok, group_id, … })
 4. 客户端拿到 group_id，后续上传素材复用 POST /v1/assets（支持 Image / Video / Audio）
 ```
 
@@ -60,7 +60,7 @@ api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
 ## 请求示例
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
+curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"name": "真人A"}'
@@ -98,7 +98,7 @@ curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
 
 ```json
 {
-  "type": "gravitex-asset-validate-result",
+  "type": "tennda-asset-validate-result",
   "ok": true,
   "group_id": "group-20260512083014-zyxwv",
   "name": "真人A",
@@ -111,7 +111,7 @@ curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
 
 ```json
 {
-  "type": "gravitex-asset-validate-result",
+  "type": "tennda-asset-validate-result",
   "ok": false,
   "result_code": "10003",
   "error": "真人核验未通过：人脸与底图不匹配"
@@ -125,7 +125,7 @@ const popup = window.open(session.h5_link, 'asset-validate', 'width=480,height=7
 
 const listener = (event) => {
   const data = event.data;
-  if (!data || data.type !== 'gravitex-asset-validate-result') return;
+  if (!data || data.type !== 'tennda-asset-validate-result') return;
 
   window.removeEventListener('message', listener);
   if (data.ok) {

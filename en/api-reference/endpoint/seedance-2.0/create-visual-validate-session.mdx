@@ -1,7 +1,7 @@
 ---
 title: 'Create asset group (liveness)'
 description: 'POST /v1/visual-validate/session (liveness_face)'
-api: 'POST https://api.gravitex.ai/v1/visual-validate/session'
+api: 'POST https://api.tennda.ai/v1/visual-validate/session'
 ---
 
 ## Introduction
@@ -51,7 +51,7 @@ Up to **100** groups per user for virtual and live-person libraries (separate qu
 2. Client opens h5_link in a popup; user completes validation
    ↓ BytePlus redirects to gateway /asset-validate-callback.html?state=…&bytedToken=…&resultCode=10000
 3. Callback page fetches /v1/visual-validate/result; persists group_type=liveness_face
-   ↓ window.opener.postMessage({ type: 'gravitex-asset-validate-result', ok, group_id, … })
+   ↓ window.opener.postMessage({ type: 'tennda-asset-validate-result', ok, group_id, … })
 4. Client receives group_id; upload assets via POST /v1/assets (Image / Video / Audio)
 ```
 
@@ -60,7 +60,7 @@ Your application **does not** need to call `POST /v1/visual-validate/result` dir
 ## Example
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/visual-validate/session" \
+curl -X POST "https://api.tennda.ai/v1/visual-validate/session" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"name": "Live person A"}'
@@ -98,7 +98,7 @@ The callback page (`/asset-validate-callback.html`) posts to `window.opener` (`t
 
 ```json
 {
-  "type": "gravitex-asset-validate-result",
+  "type": "tennda-asset-validate-result",
   "ok": true,
   "group_id": "group-20260512083014-zyxwv",
   "name": "Live person A",
@@ -111,7 +111,7 @@ The callback page (`/asset-validate-callback.html`) posts to `window.opener` (`t
 
 ```json
 {
-  "type": "gravitex-asset-validate-result",
+  "type": "tennda-asset-validate-result",
   "ok": false,
   "result_code": "10003",
   "error": "Liveness validation failed: face does not match reference"
@@ -125,7 +125,7 @@ const popup = window.open(session.h5_link, 'asset-validate', 'width=480,height=7
 
 const listener = (event) => {
   const data = event.data;
-  if (!data || data.type !== 'gravitex-asset-validate-result') return;
+  if (!data || data.type !== 'tennda-asset-validate-result') return;
 
   window.removeEventListener('message', listener);
   if (data.ok) {

@@ -1,7 +1,7 @@
 ---
 title: 'Create asset'
 description: 'POST /v1/assets'
-api: 'POST https://api.gravitex.ai/v1/assets'
+api: 'POST https://api.tennda.ai/v1/assets'
 ---
 
 ## Introduction
@@ -78,19 +78,19 @@ Same JSON shape for image, video, and audio—only `asset_type` and URL differ:
 
 ```bash
 # Image
-curl -X POST "https://api.gravitex.ai/v1/assets" \
+curl -X POST "https://api.tennda.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://your-cdn.com/portrait.jpg","group_id":"group-xxx","asset_type":"Image","name":"portrait.jpg"}'
 
 # Video
-curl -X POST "https://api.gravitex.ai/v1/assets" \
+curl -X POST "https://api.tennda.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://your-cdn.com/dance.mp4","group_id":"group-xxx","asset_type":"Video","name":"dance.mp4"}'
 
 # Audio
-curl -X POST "https://api.gravitex.ai/v1/assets" \
+curl -X POST "https://api.tennda.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{"url":"https://your-cdn.com/voice.mp3","group_id":"group-xxx","asset_type":"Audio","name":"voice.mp3"}'

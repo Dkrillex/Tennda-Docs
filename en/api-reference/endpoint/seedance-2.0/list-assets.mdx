@@ -1,7 +1,7 @@
 ---
 title: 'List assets'
 description: 'GET /v1/assets'
-api: 'GET https://api.gravitex.ai/v1/assets'
+api: 'GET https://api.tennda.ai/v1/assets'
 ---
 
 ## Introduction
@@ -28,15 +28,15 @@ List assets for the current user and refresh in-progress upstream status automat
 
 ```bash
 # Default: virtual library
-curl "https://api.gravitex.ai/v1/assets" \
+curl "https://api.tennda.ai/v1/assets" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 
 # By group
-curl "https://api.gravitex.ai/v1/assets?group_id=group-20260508120000-abcde" \
+curl "https://api.tennda.ai/v1/assets?group_id=group-20260508120000-abcde" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 
 # All live-person library assets
-curl "https://api.gravitex.ai/v1/assets?group_type=liveness_face" \
+curl "https://api.tennda.ai/v1/assets?group_type=liveness_face" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 

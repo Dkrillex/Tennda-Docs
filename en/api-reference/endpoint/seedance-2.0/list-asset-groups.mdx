@@ -1,7 +1,7 @@
 ---
 title: 'List asset groups'
 description: 'GET /v1/asset-groups'
-api: 'GET https://api.gravitex.ai/v1/asset-groups'
+api: 'GET https://api.tennda.ai/v1/asset-groups'
 ---
 
 ## Introduction
@@ -24,15 +24,15 @@ List asset groups for the current user. Users can only access their own groups.
 
 ```bash
 # Default: virtual only
-curl "https://api.gravitex.ai/v1/asset-groups" \
+curl "https://api.tennda.ai/v1/asset-groups" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 
 # Live-person only
-curl "https://api.gravitex.ai/v1/asset-groups?group_type=liveness_face" \
+curl "https://api.tennda.ai/v1/asset-groups?group_type=liveness_face" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 
 # All
-curl "https://api.gravitex.ai/v1/asset-groups?group_type=all" \
+curl "https://api.tennda.ai/v1/asset-groups?group_type=all" \
   -H "Authorization: Bearer sk-xxxxxxxxxx"
 ```
 

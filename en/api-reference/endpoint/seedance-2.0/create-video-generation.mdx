@@ -1,7 +1,7 @@
 ---
 title: 'Create video generation'
 description: 'Seedance 2.0 POST /v1/video/generations'
-api: 'POST https://api.gravitex.ai/v1/video/generations'
+api: 'POST https://api.tennda.ai/v1/video/generations'
 ---
 
 ## Introduction
@@ -95,7 +95,7 @@ When passing http(s) URLs directly in `content` (not `asset://`), resources must
 **Text-to-video:**
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -113,7 +113,7 @@ curl -X POST "https://api.gravitex.ai/v1/video/generations" \
 **Simplified `prompt` (text-to-video):**
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -128,7 +128,7 @@ curl -X POST "https://api.gravitex.ai/v1/video/generations" \
 **Image-to-video (first frame):**
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -144,7 +144,7 @@ curl -X POST "https://api.gravitex.ai/v1/video/generations" \
 **Image-to-video (first and last frame):**
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
@@ -162,7 +162,7 @@ curl -X POST "https://api.gravitex.ai/v1/video/generations" \
 **Asset library + multimodal:**
 
 ```bash
-curl -X POST "https://api.gravitex.ai/v1/video/generations" \
+curl -X POST "https://api.tennda.ai/v1/video/generations" \
   -H "Authorization: Bearer sk-xxxxxxxxxx" \
   -H "Content-Type: application/json" \
   -d '{
