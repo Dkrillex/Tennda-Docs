@@ -104,7 +104,7 @@ OpenClaw 使用 JSON 配置文件，位于 `~/.openclaw/openclaw.json`。
         "api": "openai-completions",
         "models": [
           { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6" },
-          { "id": "openai/gpt-5.4", "name": "GPT-5.4" },
+          { "id": "gpt-5.4", "name": "GPT-5.4" },
           { "id": "deepseek-v3-2-251201", "name": "DeepSeek V3.2" },
           { "id": "gemini-3.1-pro-preview", "name": "Gemini 3.1 Pro" }
         ]
@@ -116,7 +116,6 @@ OpenClaw 使用 JSON 配置文件，位于 `~/.openclaw/openclaw.json`。
 
 <Tip>
 - `baseUrl` 必须以 `/v1` 结尾
-- GPT 系列模型需要加 `openai/` 前缀，例如 `openai/gpt-5.4`
 - `api` 字段选用 `openai-completions`；若希望直连 Claude 原生接口，可改为 `anthropic-messages`
 </Tip>
 
@@ -134,7 +133,7 @@ openclaw onboard
 | API 类型 | `openai-completions` |
 | Base URL | `https://api.tennda.ai/v1` |
 | API Key | 你的 TenndaAI 密钥 |
-| 默认模型 | `claude-sonnet-4-6` 或 `openai/gpt-5.4` |
+| 默认模型 | `claude-sonnet-4-6` 或 `gpt-5.4` |
 
 ### 方式三：Anthropic 原生配置
 
@@ -284,7 +283,6 @@ OpenClaw 内置丰富技能，可自动完成各类任务：
   </Accordion>
   <Accordion title="模型找不到">
     - 在 [模型市场](https://client.tennda.ai/#/models) 核对模型 ID
-    - GPT 系列需添加 `openai/` 前缀
   </Accordion>
   <Accordion title="配置修改未生效">
     - 修改配置后必须执行 `openclaw gateway restart`

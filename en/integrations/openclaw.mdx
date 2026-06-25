@@ -102,7 +102,7 @@ OpenClaw stores its config at `~/.openclaw/openclaw.json`.
         "api": "openai-completions",
         "models": [
           { "id": "claude-sonnet-4-6", "name": "Claude Sonnet 4.6" },
-          { "id": "openai/gpt-5.4", "name": "GPT-5.4" },
+          { "id": "gpt-5.4", "name": "GPT-5.4" },
           { "id": "deepseek-v3-2-251201", "name": "DeepSeek V3.2" },
           { "id": "gemini-3.1-pro-preview", "name": "Gemini 3.1 Pro" }
         ]
@@ -114,7 +114,6 @@ OpenClaw stores its config at `~/.openclaw/openclaw.json`.
 
 <Tip>
 - `baseUrl` must end with `/v1`
-- GPT models require the `openai/` prefix, e.g. `openai/gpt-5.4`
 - Use `openai-completions` for OpenAI-compatible mode, or `anthropic-messages` for the native Claude API
 </Tip>
 
@@ -130,7 +129,7 @@ openclaw onboard
 | API type | `openai-completions` |
 | Base URL | `https://api.tennda.ai/v1` |
 | API key | Your TenndaAI key |
-| Default model | `claude-sonnet-4-6` or `openai/gpt-5.4` |
+| Default model | `claude-sonnet-4-6` or `gpt-5.4` |
 
 ### Option C — Anthropic native mode
 
@@ -274,7 +273,6 @@ Browse the full list at the [TenndaAI model marketplace](https://client.tennda.a
   </Accordion>
   <Accordion title="Model not found">
     - Verify the model ID at the [model marketplace](https://client.tennda.ai/#/models)
-    - GPT models need the `openai/` prefix
   </Accordion>
   <Accordion title="Config changes have no effect">
     - Restart with `openclaw gateway restart` after editing the file

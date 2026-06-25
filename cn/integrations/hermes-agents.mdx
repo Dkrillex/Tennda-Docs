@@ -221,7 +221,7 @@ sandbox:
     - 使用 Claude 原生协议时改用 `https://api.tennda.ai/anthropic`，并设置 `api_mode: anthropic_messages`
   </Accordion>
   <Accordion title="模型上下文不足">
-    Hermes 要求 ≥ 64K 上下文；请改用 `claude-sonnet-4-6`、`openai/gpt-5.4`、`gemini-3.1-pro-preview` 等长上下文模型
+    Hermes 要求 ≥ 64K 上下文；请改用 `claude-sonnet-4-6`、`gpt-5.4`、`gemini-3.1-pro-preview` 等长上下文模型
   </Accordion>
   <Accordion title="配置不生效">
     `config.yaml` 是唯一权威配置源，若 `.env` 中仍残留旧的 `OPENAI_BASE_URL`，请执行 `hermes setup` 触发迁移
